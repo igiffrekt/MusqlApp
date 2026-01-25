@@ -1,0 +1,13 @@
+{
+  "name": "Musql - Edzésmenedzsment",
+  "short_name": "Musql",
+  "description": "Edzésmenedzsment rendszer harcművészeti és fitness edzőknek",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#171725",
+  "theme_color": "#D2F159",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["business", "productivity", "education"],
+  "lang": "hu-HU"
+}
