@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Home, Users, CalendarDays, Wallet } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -14,6 +15,13 @@ const navItems = [
 
 export function MobileNavbar() {
   const pathname = usePathname()
+  const { data: session } = useSession()
+
+  // Hide for student users - they have their own navigation
+  const isStudent = session?.user?.role === "STUDENT"
+  if (isStudent) {
+    return null
+  }
 
   const isActive = (href: string) => {
     if (href === "/") {

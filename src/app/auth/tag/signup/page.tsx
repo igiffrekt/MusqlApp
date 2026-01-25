@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Building2, CheckCircle } from "lucide-react"
+import { ArrowLeft, Building2, CheckCircle, Loader2 } from "lucide-react"
 
 interface Organization {
   id: string
@@ -13,7 +13,7 @@ interface Organization {
   slug: string
 }
 
-export default function TagSignUp() {
+function TagSignUpContent() {
   const searchParams = useSearchParams()
   const orgSlug = searchParams.get("org")
 
@@ -188,18 +188,6 @@ export default function TagSignUp() {
           <ArrowLeft className="w-5 h-5" />
           <span style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>Vissza</span>
         </Link>
-      </div>
-
-      {/* Logo */}
-      <div className="absolute top-6 right-6 z-20">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#D2F159] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="text-xl font-bold text-white" style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>
-            Musql.app
-          </span>
-        </div>
       </div>
 
       {/* Main Content */}
@@ -394,5 +382,17 @@ export default function TagSignUp() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function TagSignUp() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#171725" }}>
+        <Loader2 className="w-8 h-8 text-[#D2F159] animate-spin" />
+      </div>
+    }>
+      <TagSignUpContent />
+    </Suspense>
   )
 }

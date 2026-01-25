@@ -62,7 +62,7 @@
     @apply border-gray-200;
   }
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-black text-gray-900;
     font-family: var(--font-geist-sans), var(--font-inter), Arial, Helvetica, sans-serif;
   }
   

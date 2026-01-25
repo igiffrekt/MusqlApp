@@ -18,6 +18,14 @@ export async function GET() {
         name: true,
         settings: true,
         notificationSettings: true,
+        monthlyPassPrice: true,
+        monthlyPassStudentPrice: true,
+        dailyPrice: true,
+        dailyStudentPrice: true,
+        privateSessionPrice: true,
+        bankAccountName: true,
+        bankAccountNumber: true,
+        bankName: true,
       },
     })
 
@@ -49,12 +57,32 @@ export async function PATCH(request: NextRequest) {
     }
 
     const { organizationId } = authResult
-    const { settings, notificationSettings } = await request.json()
+    const body = await request.json()
+    const { 
+      settings, 
+      notificationSettings,
+      monthlyPassPrice,
+      monthlyPassStudentPrice,
+      dailyPrice,
+      dailyStudentPrice,
+      privateSessionPrice,
+      bankAccountName,
+      bankAccountNumber,
+      bankName,
+    } = body
 
     const updateData: {
       settings?: string
       name?: string
       notificationSettings?: string
+      monthlyPassPrice?: number | null
+      monthlyPassStudentPrice?: number | null
+      dailyPrice?: number | null
+      dailyStudentPrice?: number | null
+      privateSessionPrice?: number | null
+      bankAccountName?: string | null
+      bankAccountNumber?: string | null
+      bankName?: string | null
     } = {}
 
     if (settings) {
@@ -70,6 +98,18 @@ export async function PATCH(request: NextRequest) {
       updateData.notificationSettings = JSON.stringify(notificationSettings)
     }
 
+    // Handle pricing fields
+    if (monthlyPassPrice !== undefined) updateData.monthlyPassPrice = monthlyPassPrice
+    if (monthlyPassStudentPrice !== undefined) updateData.monthlyPassStudentPrice = monthlyPassStudentPrice
+    if (dailyPrice !== undefined) updateData.dailyPrice = dailyPrice
+    if (dailyStudentPrice !== undefined) updateData.dailyStudentPrice = dailyStudentPrice
+    if (privateSessionPrice !== undefined) updateData.privateSessionPrice = privateSessionPrice
+
+    // Handle bank account fields
+    if (bankAccountName !== undefined) updateData.bankAccountName = bankAccountName || null
+    if (bankAccountNumber !== undefined) updateData.bankAccountNumber = bankAccountNumber || null
+    if (bankName !== undefined) updateData.bankName = bankName || null
+
     const updatedOrganization = await prisma.organization.update({
       where: { id: organizationId },
       data: updateData,
@@ -78,6 +118,14 @@ export async function PATCH(request: NextRequest) {
         name: true,
         settings: true,
         notificationSettings: true,
+        monthlyPassPrice: true,
+        monthlyPassStudentPrice: true,
+        dailyPrice: true,
+        dailyStudentPrice: true,
+        privateSessionPrice: true,
+        bankAccountName: true,
+        bankAccountNumber: true,
+        bankName: true,
       },
     })
 

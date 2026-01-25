@@ -63,33 +63,18 @@ export default function OnboardingPage() {
   const currentStepData = steps[currentStep]
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: "#171725" }}>
-      {/* Logo */}
-      <div className="absolute top-6 left-6 z-20">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#D2F159] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>
-            Musql.app
-          </span>
-        </div>
-      </div>
-
+    <div className="h-[100dvh] flex flex-col relative overflow-hidden" style={{ background: "#171725" }}>
       {/* Main Content - Single Card User Journey */}
-      <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
-        <div className="w-full max-w-md relative">
+      <div className="flex-1 flex flex-col px-4 py-4 overflow-hidden">
+        <div className="w-full max-w-md mx-auto relative flex-1 flex flex-col">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
-              className={`relative rounded-3xl overflow-hidden ${
-                currentStepData.isSplash ? 'min-h-[500px]' : ''
+              className={`relative rounded-3xl overflow-hidden flex-1 flex flex-col ${
+                currentStepData.isSplash ? 'min-h-[400px]' : ''
               }`}
               style={{ 
                 padding: currentStepData.isSplash ? '20px' : '0',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'stretch'
               }}
               initial={{ 
                 x: "100%",
@@ -118,7 +103,7 @@ export default function OnboardingPage() {
             >
             {currentStepData.isSplash ? (
               /* Splash Screen */
-              <div className="flex flex-col items-center min-h-[500px] relative">
+              <div className="flex flex-col items-center min-h-[400px] relative">
                 {/* 1. Title - Musql.app */}
                 <motion.h1
                   initial={{ y: 20, opacity: 0 }}
@@ -153,7 +138,7 @@ export default function OnboardingPage() {
                   style={{ 
                     fontFamily: 'Lufga, Inter, sans-serif',
                     fontSize: '16px',
-                    marginBottom: '40px'
+                    marginBottom: '24px'
                   }}
                 >
                   Óraszervező alkalmazás
@@ -182,13 +167,10 @@ export default function OnboardingPage() {
               </div>
             ) : (
               <>
-                {/* Image Container */}
-                <div className="relative w-full overflow-hidden" style={{ height: '410px', alignSelf: 'flex-start', borderRadius: '1.5rem' }}>
+                {/* Image Container - Dynamic height, fills to top */}
+                <div className="relative w-full overflow-hidden flex-1 mb-4" style={{ borderRadius: '1.5rem', minHeight: '200px' }}>
                   <div 
                     className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 z-10"
-                    style={{ 
-                      height: '410px'
-                    }}
                   />
                   <img
                     src={currentStepData.image}
@@ -199,7 +181,7 @@ export default function OnboardingPage() {
                 </div>
 
                 {/* Content */}
-                <div className="space-y-6" style={{ padding: '30px 0' }}>
+                <div className="space-y-4" style={{ padding: '30px 0' }}>
                   {/* Progress Dots - Top Left of Content (Visual Only) */}
                   <div className="flex space-x-2">
                     {steps.map((_, index) => (
@@ -233,7 +215,7 @@ export default function OnboardingPage() {
                   {/* Button */}
                   <motion.button
                     onClick={handleNext}
-                    className="relative w-full py-4 px-8 rounded-full font-semibold text-gray-900 bg-[#D2F159] shadow-lg overflow-hidden"
+                    className="relative w-full py-3 px-8 rounded-full font-semibold text-gray-900 bg-[#D2F159] shadow-lg overflow-hidden"
                     style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
                     whileHover={{ 
                       scale: 1.05,
@@ -273,7 +255,7 @@ export default function OnboardingPage() {
 
                   {/* Sign Up Link (only on last step) */}
                   {currentStepData.isLast && (
-                    <div className="text-center pt-2">
+                    <div className="text-center">
                       <Link
                         href="/auth/signup"
                         className="text-sm text-gray-400 hover:text-[#D2F159] transition-colors"
@@ -294,7 +276,7 @@ export default function OnboardingPage() {
 
       {/* CTA and Indicator - Fixed at bottom of screen (only for splash) */}
       {currentStepData.isSplash && (
-        <div className="fixed bottom-0 left-0 right-0 flex flex-col items-center pb-8 px-4 z-10">
+        <div className="fixed bottom-0 left-0 right-0 flex flex-col items-center pb-4 px-4 z-10">
           {/* CTA Button */}
           <motion.button
             onClick={handleNext}
@@ -303,7 +285,7 @@ export default function OnboardingPage() {
               fontFamily: 'Lufga, Inter, sans-serif',
               backgroundColor: '#D2F159',
               width: '327px',
-              marginBottom: '20px'
+              marginBottom: '12px'
             }}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -345,8 +327,8 @@ export default function OnboardingPage() {
           </motion.button>
 
           {/* Progress Dots and Version */}
-          <div className="flex flex-col items-center" style={{ marginBottom: '20px' }}>
-            <div className="flex space-x-2 mb-2" style={{ padding: '10px' }}>
+          <div className="flex flex-col items-center" style={{ marginBottom: '8px' }}>
+            <div className="flex space-x-2 mb-2" style={{ padding: '6px' }}>
               {steps.map((_, index) => (
                 <div
                   key={index}
@@ -362,7 +344,7 @@ export default function OnboardingPage() {
               className="text-white/60 text-sm"
               style={{ 
                 fontFamily: 'Lufga, Inter, sans-serif',
-                paddingTop: '30px'
+                paddingTop: '12px'
               }}
             >
               V1.0

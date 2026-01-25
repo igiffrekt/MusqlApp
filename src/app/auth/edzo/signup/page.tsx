@@ -202,18 +202,6 @@ export default function EdzoSignUp() {
         </Link>
       </div>
 
-      {/* Logo */}
-      <div className="absolute top-6 right-6 z-20">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#D2F159] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="text-xl font-bold text-white" style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>
-            Musql.app
-          </span>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
         <div className="w-full max-w-md relative">

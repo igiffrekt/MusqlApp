@@ -12,10 +12,12 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-interface CalendarProps extends Omit<React.ComponentProps<typeof DayPicker>, 'mode'> {
+interface CalendarProps extends Omit<React.ComponentProps<typeof DayPicker>, 'mode' | 'selected' | 'onSelect'> {
   mode?: "single" | "multiple" | "range"
   onTodayClick?: () => void
   showTodayButton?: boolean
+  selected?: Date | Date[] | { from?: Date; to?: Date }
+  onSelect?: (date: Date | undefined) => void
 }
 
 function Calendar({
@@ -115,7 +117,7 @@ function Calendar({
         locale={hu}
         month={currentMonth}
         onMonthChange={handleMonthChange}
-        selected={selected}
+        selected={selected as never}
         onSelect={onSelect as never}
         mode={mode as never}
         hideNavigation

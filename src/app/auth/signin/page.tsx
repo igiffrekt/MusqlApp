@@ -31,18 +31,6 @@ export default function AuthLanding() {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: "#171725" }}>
-      {/* Logo */}
-      <div className="absolute top-6 left-6 z-20">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#D2F159] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="text-xl font-bold text-white" style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>
-            Musql.app
-          </span>
-        </div>
-      </div>
-
       {/* Hidden Super Admin Button */}
       <button
         onClick={handleSuperAdminLogin}
@@ -89,7 +77,7 @@ export default function AuthLanding() {
                   style={{ background: "rgba(255,255,255,0.05)" }}
                 >
                   <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#D2F159] to-[#9BC53D] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                    <Dumbbell className="w-8 h-8 text-gray-900" />
+                    <Dumbbell className="w-8 h-8 text-[#171725]" />
                   </div>
                   <h2
                     className="text-xl font-bold text-white mb-2"

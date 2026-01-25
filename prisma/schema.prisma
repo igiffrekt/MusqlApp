@@ -19,6 +19,19 @@ model Organization {
   stripeCustomerId  String?  @unique
   settings          String   @default("{}")
   notificationSettings String? @default("{}")
+  
+  // Pricing (in HUF)
+  monthlyPassPrice        Int?     // Havi bérlet díj
+  monthlyPassStudentPrice Int?     // Havi bérlet díj diákoknak
+  dailyPrice              Int?     // Napidíj
+  dailyStudentPrice       Int?     // Napidíj diákoknak
+  privateSessionPrice     Int?     // Egyéni óra díj (optional)
+  
+  // Bank account for receiving payments
+  bankAccountName   String?  // Számlatulajdonos neve
+  bankAccountNumber String?  // Bankszámlaszám (8-8-8 or IBAN)
+  bankName          String?  // Bank neve (optional)
+  
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -131,6 +144,7 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
+  phone         String?
   image         String?
   password      String?
   role          UserRole  @default(STUDENT)
@@ -326,9 +340,10 @@ model VerificationToken {
 
 // Enums
 enum LicenseTier {
-  STARTER     // 9,990 Ft/month - up to 30 members, 1 coach, 1 location
-  PRO         // 29,990 Ft/month - up to 150 members, 5 coaches, 2 locations
-  ENTERPRISE  // Elite+ - 99,990 Ft/month - unlimited everything
+  STARTER       // 9,990 Ft/month - up to 30 members, 1 coach, 1 location
+  PRO           // 29,990 Ft/month - up to 150 members, 5 coaches, 2 locations
+  PROFESSIONAL  // Legacy - same as PRO
+  ENTERPRISE    // Elite+ - 99,990 Ft/month - unlimited everything
 }
 
 enum SubscriptionStatus {

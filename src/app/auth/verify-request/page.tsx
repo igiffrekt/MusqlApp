@@ -7,18 +7,6 @@ import { Mail } from "lucide-react"
 export default function VerifyRequest() {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: "#171725" }}>
-      {/* Logo */}
-      <div className="absolute top-6 left-6 z-20">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#D2F159] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="text-xl font-bold text-white" style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>
-            Musql.app
-          </span>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <motion.div
@@ -26,8 +14,8 @@ export default function VerifyRequest() {
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-md text-center"
         >
-          <div className="w-24 h-24 rounded-full bg-[#D2F159]/20 flex items-center justify-center mx-auto mb-8">
-            <Mail className="w-12 h-12 text-[#D2F159]" />
+          <div className="w-24 h-24 rounded-full bg-[#FF6F61]/20 flex items-center justify-center mx-auto mb-8">
+            <Mail className="w-12 h-12 text-[#FF6F61]" />
           </div>
           <h1
             className="text-3xl font-bold text-white mb-4"
@@ -44,7 +32,7 @@ export default function VerifyRequest() {
           <div className="space-y-4">
             <Link
               href="/auth/signin"
-              className="inline-block w-full py-4 px-8 rounded-full font-semibold text-gray-900 bg-[#D2F159] hover:bg-[#D2F159]/90 transition-colors"
+              className="inline-block w-full py-4 px-8 rounded-full font-semibold text-gray-900 bg-[#FF6F61] hover:bg-[#FF6F61]/90 transition-colors"
               style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
             >
               Vissza a bejelentkezéshez
@@ -55,7 +43,7 @@ export default function VerifyRequest() {
             style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
           >
             Nem kaptad meg az emailt? Nézd meg a spam mappát, vagy{" "}
-            <Link href="/auth/tag/signin" className="text-[#D2F159] hover:text-[#D2F159]/80">
+            <Link href="/auth/tag/signin" className="text-[#FF6F61] hover:text-[#FF6F61]/80">
               próbáld újra
             </Link>
           </p>

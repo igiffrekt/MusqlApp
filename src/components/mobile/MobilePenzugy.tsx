@@ -74,6 +74,17 @@ interface GroupData {
 
 const GROUP_COLORS = ["#D2F159", "#1ad598", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4"]
 
+const PAYMENT_TYPE_LABELS: Record<string, string> = {
+  TUITION: "Havi tandíj",
+  PRIVATE_LESSON: "Magánóra",
+  SEMINAR: "Szeminárium",
+  EQUIPMENT: "Felszerelés",
+  MEMBERSHIP: "Havi tagdíj",
+  OTHER: "Egyéb",
+}
+
+const getPaymentTypeLabel = (type: string) => PAYMENT_TYPE_LABELS[type] || type
+
 export function MobilePenzugy() {
   const { data: session } = useSession()
   const router = useRouter()
@@ -225,7 +236,7 @@ export function MobilePenzugy() {
                             <CreditCard className="w-5 h-5 text-orange-400" />
                           </div>
                           <div>
-                            <p className="text-white font-medium">{payment.paymentType === "TUITION" ? "Tagdíj" : payment.paymentType}</p>
+                            <p className="text-white font-medium">{getPaymentTypeLabel(payment.paymentType)}</p>
                             <p className="text-white/40 text-sm">
                               Határidő: {new Date(payment.dueDate).toLocaleDateString("hu-HU")}
                             </p>
@@ -256,7 +267,7 @@ export function MobilePenzugy() {
                           <CheckCircle className="w-5 h-5 text-green-400" />
                         </div>
                         <div>
-                          <p className="text-white font-medium">{payment.paymentType === "TUITION" ? "Tagdíj" : payment.paymentType}</p>
+                          <p className="text-white font-medium">{getPaymentTypeLabel(payment.paymentType)}</p>
                           <p className="text-white/40 text-sm">
                             {payment.paidDate ? new Date(payment.paidDate).toLocaleDateString("hu-HU") : "-"}
                           </p>

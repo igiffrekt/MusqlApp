@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { MobileOnboardingLocation } from "@/components/mobile/MobileOnboardingLocation"
 import { MobileOnboardingSession } from "@/components/mobile/MobileOnboardingSession"
+import { MobileOnboardingPricing } from "@/components/mobile/MobileOnboardingPricing"
 import { useNotificationsStore } from "@/lib/stores/notifications-store"
 import { useMembersStore } from "@/lib/stores/members-store"
 
-type Step = "location" | "session"
+type Step = "location" | "session" | "pricing"
 
 const SETUP_STORAGE_KEY = "musql_setup_progress"
 
@@ -158,10 +159,27 @@ export default function SetupPage() {
     })
   }
 
-  const handleBack = () => {
+  const handleSessionComplete = () => {
+    setStep("pricing")
+    saveProgress({
+      step: "pricing",
+      locationId,
+      locationName,
+    })
+  }
+
+  const handleBackToLocation = () => {
     setStep("location")
-    // Clear progress when going back to start
     clearProgress()
+  }
+
+  const handleBackToSession = () => {
+    setStep("session")
+    saveProgress({
+      step: "session",
+      locationId,
+      locationName,
+    })
   }
 
   // Show loading while checking auth and existing data
@@ -191,8 +209,12 @@ export default function SetupPage() {
         <MobileOnboardingSession
           locationId={locationId}
           locationName={locationName}
-          onBack={handleBack}
+          onBack={handleBackToLocation}
+          onComplete={handleSessionComplete}
         />
+      )}
+      {step === "pricing" && (
+        <MobileOnboardingPricing onBack={handleBackToSession} />
       )}
     </>
   )

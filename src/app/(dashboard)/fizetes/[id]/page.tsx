@@ -7,8 +7,5 @@ interface Props {
 export default async function PaymentDetailPage({ params }: Props) {
   const { id } = await params
 
-  // In production, fetch payment details from API
-  // const payment = await fetch(`/api/payments/${id}`).then(res => res.json())
-
-  return <MobilePayment />
+  return <MobilePayment paymentId={id} />
 }

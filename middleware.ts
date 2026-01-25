@@ -1,54 +1,52 @@
-import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export default auth((req) => {
-  const token = req.auth
-  const pathname = req.nextUrl.pathname
-  const isAuthPage = pathname.startsWith('/auth')
-  const isApiRoute = pathname.startsWith('/api')
-
-  // Allow access to auth pages
-  if (isAuthPage) {
+// Simple middleware that checks for auth cookie
+// Full auth validation happens in API routes/server components
+export function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  
+  // Public paths that don't require auth
+  const publicPaths = [
+    '/auth',
+    '/api/auth',
+    '/api/health',
+    '/api/organizations/lookup',
+    '/_next',
+    '/favicon.ico',
+    '/manifest.json',
+    '/sw.js',
+    '/pwa-icons',
+    '/icons',
+    '/img',
+  ]
+  
+  // Check if path is public
+  const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
+  
+  if (isPublicPath) {
     return NextResponse.next()
   }
-
-  // If user is not authenticated and trying to access protected route
-  if (!token && !isApiRoute) {
-    return NextResponse.redirect(new URL('/auth/signin', req.url))
+  
+  // Check for session cookie (NextAuth sets this)
+  const sessionToken = request.cookies.get('authjs.session-token') || 
+                       request.cookies.get('__Secure-authjs.session-token')
+  
+  // If no session and trying to access protected route, redirect to signin
+  if (!sessionToken) {
+    const signInUrl = new URL('/auth/signin', request.url)
+    signInUrl.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(signInUrl)
   }
-
-  // Role-based route protection
-  if (token) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userRole = (token as any).userRole as string | undefined
-
-    // Block students from trainer routes
-    if (userRole === "STUDENT" && pathname.startsWith('/trainer')) {
-      return NextResponse.redirect(new URL('/', req.url))
-    }
-
-    // Block students from admin routes
-    if (userRole === "STUDENT" && pathname.startsWith('/admin')) {
-      return NextResponse.redirect(new URL('/', req.url))
-    }
-
-    // Block non-admins from admin routes
-    if (pathname.startsWith('/admin') && userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
-      return NextResponse.redirect(new URL('/', req.url))
-    }
-  }
-
+  
   return NextResponse.next()
-})
+}
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * Match all request paths except for static files
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|pwa-icons|icons|img|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 }

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Mail, Lock, CreditCard, Check, X, Phone, Send, CheckCircle } from "lucide-react"
+import { ArrowLeft, Mail, Lock, CreditCard, Check, X, Phone, Send, CheckCircle, Building2 } from "lucide-react"
 import { toast } from "sonner"
 import { MobileNavbar } from "./MobileNavbar"
 
@@ -87,6 +87,61 @@ export function MobileFiok() {
   const [selectedTierForPayment, setSelectedTierForPayment] = useState<SubscriptionTier | null>(null)
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Bank account state
+  const [bankAccountName, setBankAccountName] = useState("")
+  const [bankAccountNumber, setBankAccountNumber] = useState("")
+  const [bankName, setBankName] = useState("")
+  const [isSavingBank, setIsSavingBank] = useState(false)
+
+  const isTrainerOrAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "TRAINER"
+
+  // Fetch bank account info on mount
+  useEffect(() => {
+    if (isTrainerOrAdmin) {
+      fetchBankAccount()
+    }
+  }, [isTrainerOrAdmin])
+
+  const fetchBankAccount = async () => {
+    try {
+      const res = await fetch("/api/admin/settings")
+      if (res.ok) {
+        const data = await res.json()
+        setBankAccountName(data.settings?.bankAccountName || "")
+        setBankAccountNumber(data.settings?.bankAccountNumber || "")
+        setBankName(data.settings?.bankName || "")
+      }
+    } catch (error) {
+      console.error("Failed to fetch bank account:", error)
+    }
+  }
+
+  const handleSaveBankAccount = async () => {
+    setIsSavingBank(true)
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bankAccountName,
+          bankAccountNumber,
+          bankName,
+        }),
+      })
+
+      if (res.ok) {
+        toast.success("Bankszámla adatok mentve!")
+      } else {
+        toast.error("Hiba történt a mentés során")
+      }
+    } catch (error) {
+      console.error("Failed to save bank account:", error)
+      toast.error("Hiba történt a mentés során")
+    } finally {
+      setIsSavingBank(false)
+    }
+  }
 
   const handleChangeEmail = async () => {
     setIsChangingEmail(true)
@@ -333,6 +388,61 @@ export function MobileFiok() {
             Előfizetés módosítása
           </button>
         </section>
+
+        {/* Bank Account Section - Only for Trainers/Admins */}
+        {isTrainerOrAdmin && (
+          <section className="bg-[#252a32] rounded-2xl p-5 border border-white/5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-[#333842] flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-[#D2F159]" />
+              </div>
+              <div>
+                <h2 className="text-white font-semibold">Bankszámla</h2>
+                <p className="text-white/40 text-xs">Ide érkeznek a tagdíjak</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-white/60 text-xs mb-1 block">Számlatulajdonos neve</label>
+                <input
+                  type="text"
+                  value={bankAccountName}
+                  onChange={(e) => setBankAccountName(e.target.value)}
+                  placeholder="Példa Péter"
+                  className="w-full bg-[#333842] rounded-xl border border-white/5 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#D2F159]"
+                />
+              </div>
+              <div>
+                <label className="text-white/60 text-xs mb-1 block">Bankszámlaszám</label>
+                <input
+                  type="text"
+                  value={bankAccountNumber}
+                  onChange={(e) => setBankAccountNumber(e.target.value)}
+                  placeholder="12345678-12345678-12345678"
+                  className="w-full bg-[#333842] rounded-xl border border-white/5 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#D2F159]"
+                />
+              </div>
+              <div>
+                <label className="text-white/60 text-xs mb-1 block">Bank neve (opcionális)</label>
+                <input
+                  type="text"
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  placeholder="OTP Bank"
+                  className="w-full bg-[#333842] rounded-xl border border-white/5 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#D2F159]"
+                />
+              </div>
+              <button
+                onClick={handleSaveBankAccount}
+                disabled={isSavingBank || !bankAccountName || !bankAccountNumber}
+                className="w-full py-3 rounded-xl bg-[#D2F159] text-[#171725] font-semibold disabled:opacity-50"
+              >
+                {isSavingBank ? "Mentés..." : "Bankszámla mentése"}
+              </button>
+            </div>
+          </section>
+        )}
 
         {/* Danger Zone */}
         <section className="bg-[#252a32] rounded-2xl p-5 border border-red-500/20">

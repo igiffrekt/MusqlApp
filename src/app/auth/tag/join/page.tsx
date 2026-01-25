@@ -64,18 +64,6 @@ export default function TagJoin() {
         </Link>
       </div>
 
-      {/* Logo */}
-      <div className="absolute top-6 right-6 z-20">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#D2F159] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="text-xl font-bold text-white" style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>
-            Musql.app
-          </span>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
         <div className="w-full max-w-md relative">
@@ -135,7 +123,7 @@ export default function TagJoin() {
                   <button
                     type="submit"
                     disabled={isLoading || !slug.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#FF6F61] text-white hover:bg-[#FF6F61]/80 disabled:opacity-50 transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#FF6F61] text-[#171725] hover:bg-[#FF6F61]/80 disabled:opacity-50 transition-colors"
                   >
                     <Search className="w-4 h-4" />
                   </button>

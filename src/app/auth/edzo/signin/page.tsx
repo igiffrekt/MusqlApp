@@ -1,14 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Shield } from "lucide-react"
+import { ArrowLeft, Shield, Loader2 } from "lucide-react"
 
-export default function EdzoSignIn() {
+function EdzoSignInContent() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -66,26 +66,15 @@ export default function EdzoSignIn() {
         </Link>
       </div>
 
-      {/* Logo */}
-      <div className="absolute top-6 right-6 z-20">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#D2F159] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="text-xl font-bold text-white" style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>
-            Musql.app
-          </span>
-          {/* Hidden super admin button */}
-          <button
-            type="button"
-            onClick={handleSuperAdminLogin}
-            className="ml-2 w-6 h-6 flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity"
-            title="Super Admin"
-          >
-            <Shield className="w-4 h-4 text-white" />
-          </button>
-        </div>
-      </div>
+      {/* Hidden super admin button */}
+      <button
+        type="button"
+        onClick={handleSuperAdminLogin}
+        className="absolute top-6 right-6 z-20 w-8 h-8 flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity"
+        title="Super Admin"
+      >
+        <Shield className="w-5 h-5 text-white" />
+      </button>
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
@@ -271,5 +260,17 @@ export default function EdzoSignIn() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function EdzoSignIn() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#171725" }}>
+        <Loader2 className="w-8 h-8 text-[#D2F159] animate-spin" />
+      </div>
+    }>
+      <EdzoSignInContent />
+    </Suspense>
   )
 }

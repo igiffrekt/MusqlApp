@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Shield, Calendar, CreditCard, Clock, CalendarDays, ChevronLeft } from "lucide-react"
+import { Shield, Calendar, CreditCard, Clock, CalendarDays, ChevronLeft, Loader2, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-type PaymentMethod = "apple_pay" | "google_pay" | "simplepay" | null
+type PaymentMethod = "apple_pay" | "google_pay" | "simplepay" | "bank_transfer" | null
 type FeeType = "daily" | "monthly" | null
 type Step = "fee_type" | "payment_method"
 
@@ -18,7 +18,16 @@ interface GroupPricing {
   currency: string
 }
 
+interface PaymentData {
+  id: string
+  amount: number
+  status: string
+  dueDate: string
+  paymentType: string
+}
+
 interface Props {
+  paymentId?: string
   groupPricing?: GroupPricing
 }
 
@@ -31,12 +40,46 @@ const defaultGroupPricing: GroupPricing = {
   currency: "HUF",
 }
 
-export function MobilePayment({ groupPricing = defaultGroupPricing }: Props) {
+export function MobilePayment({ paymentId, groupPricing = defaultGroupPricing }: Props) {
   const router = useRouter()
-  const [step, setStep] = useState<Step>("fee_type")
-  const [selectedFeeType, setSelectedFeeType] = useState<FeeType>(null)
+  const [step, setStep] = useState<Step>(paymentId ? "payment_method" : "fee_type")
+  const [selectedFeeType, setSelectedFeeType] = useState<FeeType>(paymentId ? "monthly" : null)
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(null)
   const [processing, setProcessing] = useState(false)
+  const [loading, setLoading] = useState(!!paymentId)
+  const [paymentData, setPaymentData] = useState<PaymentData | null>(null)
+  const [bankInfo, setBankInfo] = useState<{ bankAccountName?: string; bankAccountNumber?: string; bankName?: string } | null>(null)
+
+  // Fetch payment data and bank info
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch payment if paymentId provided
+        if (paymentId) {
+          const res = await fetch("/api/payments/my")
+          if (res.ok) {
+            const data = await res.json()
+            const payment = data.payments?.find((p: PaymentData) => p.id === paymentId)
+            if (payment) {
+              setPaymentData(payment)
+            }
+          }
+        }
+
+        // Fetch bank info for bank transfer option
+        const bankRes = await fetch("/api/organization/bank-info")
+        if (bankRes.ok) {
+          const bankData = await bankRes.json()
+          setBankInfo(bankData)
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [paymentId])
 
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat("hu-HU", {
@@ -48,6 +91,7 @@ export function MobilePayment({ groupPricing = defaultGroupPricing }: Props) {
   }
 
   const getSelectedAmount = () => {
+    if (paymentData) return paymentData.amount
     if (selectedFeeType === "daily") return groupPricing.dailyFee
     if (selectedFeeType === "monthly") return groupPricing.monthlyFee
     return 0
@@ -73,20 +117,48 @@ export function MobilePayment({ groupPricing = defaultGroupPricing }: Props) {
   }
 
   const handlePayment = async () => {
-    if (!selectedMethod || !selectedFeeType) return
+    if (!selectedMethod || (!selectedFeeType && !paymentId)) return
+
+    // For bank transfer, just redirect to success page with instructions
+    if (selectedMethod === "bank_transfer") {
+      router.push("/fizetes/sikeres?method=bank_transfer")
+      return
+    }
 
     setProcessing(true)
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      // Simulate payment processing (payment gateway integration)
+      await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    // In production, this would:
-    // - For Apple Pay: Use Apple Pay JS API
-    // - For Google Pay: Use Google Pay API
-    // - For SimplePay: Redirect to SimplePay gateway
+      // In production, this would:
+      // - For Apple Pay: Use Apple Pay JS API
+      // - For Google Pay: Use Google Pay API
+      // - For SimplePay: Redirect to SimplePay gateway
 
-    setProcessing(false)
-    router.push("/fizetes/sikeres")
+      // After successful payment, update payment status in database
+      if (paymentId) {
+        const res = await fetch(`/api/payments/my/${paymentId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "PAID",
+            paymentMethod: "CARD",
+          }),
+        })
+
+        if (!res.ok) {
+          throw new Error("Failed to update payment status")
+        }
+      }
+
+      router.push("/fizetes/sikeres")
+    } catch (error) {
+      console.error("Payment failed:", error)
+      // TODO: Show error message to user
+    } finally {
+      setProcessing(false)
+    }
   }
 
   const feeTypes = [
@@ -128,7 +200,22 @@ export function MobilePayment({ groupPricing = defaultGroupPricing }: Props) {
       logo: "/icons/payment/simplepay.svg",
       available: true,
     },
+    {
+      id: "bank_transfer" as const,
+      name: "Banki átutalás",
+      description: bankInfo?.bankAccountNumber ? "Utalás bankszámlára" : "Nincs megadva bankszámla",
+      logo: null,
+      available: !!bankInfo?.bankAccountNumber,
+    },
   ]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#171725] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#D2F159] animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#171725] pb-32 font-lufga">
@@ -296,16 +383,20 @@ export function MobilePayment({ groupPricing = defaultGroupPricing }: Props) {
                 >
                   {/* Logo Container */}
                   <div className="w-14 h-10 flex items-center justify-center">
-                    <Image
-                      src={method.logo}
-                      alt={method.name}
-                      width={method.id === "simplepay" ? 80 : 48}
-                      height={24}
-                      className={cn(
-                        "object-contain",
-                        method.id === "apple_pay" && "invert"
-                      )}
-                    />
+                    {method.logo ? (
+                      <Image
+                        src={method.logo}
+                        alt={method.name}
+                        width={method.id === "simplepay" ? 80 : 48}
+                        height={24}
+                        className={cn(
+                          "object-contain",
+                          method.id === "apple_pay" && "invert"
+                        )}
+                      />
+                    ) : (
+                      <Building2 className="w-6 h-6 text-[#D2F159]" />
+                    )}
                   </div>
 
                   {/* Method Info */}
@@ -345,6 +436,40 @@ export function MobilePayment({ groupPricing = defaultGroupPricing }: Props) {
               ))}
             </div>
           </div>
+
+          {/* Bank Transfer Info - Show when bank transfer is selected */}
+          {selectedMethod === "bank_transfer" && bankInfo?.bankAccountNumber && (
+            <div className="px-6 mb-6">
+              <div className="bg-[#252a32] rounded-[20px] p-5 border border-[#D2F159]/30">
+                <h3 className="text-white font-semibold mb-4">Utalási adatok</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-white/40 text-xs">Számlatulajdonos</p>
+                    <p className="text-white font-medium">{bankInfo.bankAccountName}</p>
+                  </div>
+                  <div>
+                    <p className="text-white/40 text-xs">Bankszámlaszám</p>
+                    <p className="text-[#D2F159] font-mono text-lg">{bankInfo.bankAccountNumber}</p>
+                  </div>
+                  {bankInfo.bankName && (
+                    <div>
+                      <p className="text-white/40 text-xs">Bank</p>
+                      <p className="text-white">{bankInfo.bankName}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-white/40 text-xs">Összeg</p>
+                    <p className="text-white font-bold">{formatCurrency(getSelectedAmount(), groupPricing.currency)}</p>
+                  </div>
+                  <div className="pt-2 border-t border-white/10">
+                    <p className="text-white/60 text-xs">
+                      A közleménybe írd be a neved. Az utalás beérkezése után az edződ jóváhagyja a befizetést.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Security Badge */}
           <div className="px-6 mb-6">
@@ -399,7 +524,9 @@ export function MobilePayment({ groupPricing = defaultGroupPricing }: Props) {
                   Feldolgozás...
                 </span>
               ) : selectedMethod ? (
-                `Fizetés ${selectedMethod === "apple_pay" ? "Apple Pay" : selectedMethod === "google_pay" ? "Google Pay" : "SimplePay"}-jel`
+                selectedMethod === "bank_transfer" 
+                  ? "Értettem, átutalom" 
+                  : `Fizetés ${selectedMethod === "apple_pay" ? "Apple Pay" : selectedMethod === "google_pay" ? "Google Pay" : "SimplePay"}-jel`
               ) : (
                 "Válassz fizetési módot"
               )}

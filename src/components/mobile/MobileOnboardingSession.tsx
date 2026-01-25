@@ -15,9 +15,10 @@ interface MobileOnboardingSessionProps {
   locationId: string
   locationName: string
   onBack: () => void
+  onComplete?: () => void
 }
 
-export function MobileOnboardingSession({ locationId, locationName, onBack }: MobileOnboardingSessionProps) {
+export function MobileOnboardingSession({ locationId, locationName, onBack, onComplete }: MobileOnboardingSessionProps) {
   const router = useRouter()
   const [title, setTitle] = useState("")
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
@@ -104,6 +105,12 @@ export function MobileOnboardingSession({ locationId, locationName, onBack }: Mo
       if (!response.ok) {
         const data = await response.json()
         throw new Error(data.message || "Nem sikerült létrehozni az edzést")
+      }
+
+      // If onComplete callback provided, use it (for multi-step setup)
+      if (onComplete) {
+        onComplete()
+        return
       }
 
       // Clear setup progress and mark as complete

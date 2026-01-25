@@ -1,20 +1,29 @@
 "use client"
 
-import { useState } from "react"
-import { signIn } from "next-auth/react"
-import { useSearchParams } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { signIn, useSession } from "next-auth/react"
+import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Mail, Info } from "lucide-react"
+import { ArrowLeft, Mail, Info, Loader2 } from "lucide-react"
 
-export default function TagSignIn() {
+function TagSignInContent() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [emailSent, setEmailSent] = useState(false)
   const searchParams = useSearchParams()
   const errorParam = searchParams.get("error")
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      router.replace("/")
+    }
+  }, [session, status, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -107,18 +116,6 @@ export default function TagSignIn() {
           <ArrowLeft className="w-5 h-5" />
           <span style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>Vissza</span>
         </Link>
-      </div>
-
-      {/* Logo */}
-      <div className="absolute top-6 right-6 z-20">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#FF6F61] to-[#D2F159] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="text-xl font-bold text-white" style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>
-            Musql.app
-          </span>
-        </div>
       </div>
 
       {/* Main Content */}
@@ -262,5 +259,17 @@ export default function TagSignIn() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function TagSignIn() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#171725" }}>
+        <Loader2 className="w-8 h-8 text-[#D2F159] animate-spin" />
+      </div>
+    }>
+      <TagSignInContent />
+    </Suspense>
   )
 }

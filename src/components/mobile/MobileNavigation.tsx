@@ -21,7 +21,7 @@ import {
   Smartphone,
   User
 } from "lucide-react"
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown"
 
 const navigation = [
@@ -60,6 +60,7 @@ const PAGES_WITH_CUSTOM_NAV = [
 export function MobileNavigation({ className }: MobileNavigationProps) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const { data: session } = useSession()
 
   // Check if we're on mobile
   const [isMobile, setIsMobile] = useState(false)
@@ -77,7 +78,10 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
   // Hide on pages that have their own custom navigation
   const shouldHide = PAGES_WITH_CUSTOM_NAV.some(path => pathname.startsWith(path))
 
-  if (!isMobile || shouldHide) {
+  // Hide for student users - they have their own navigation
+  const isStudent = session?.user?.role === "STUDENT"
+
+  if (!isMobile || shouldHide || isStudent) {
     return null
   }
 

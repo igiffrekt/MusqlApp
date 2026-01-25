@@ -74,7 +74,10 @@ export async function GET(request: NextRequest) {
       include: {
         trainer: {
           select: {
+            id: true,
             name: true,
+            email: true,
+            phone: true,
           },
         },
         locationRef: {
@@ -193,7 +196,10 @@ export async function POST(request: NextRequest) {
       include: {
         trainer: {
           select: {
+            id: true,
             name: true,
+            email: true,
+            phone: true,
           },
         },
         locationRef: {
