@@ -1,17 +1,18 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
-import { auth } from "@/lib/auth"
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   
-  // Public paths that dont require auth
+  // Public paths that don't require auth
   const publicPaths = [
     '/auth',
     '/api/auth',
     '/api/health',
     '/api/dev',
     '/api/organizations/lookup',
+    '/api/subscribe/resume',
+    '/api/webhooks',
     '/_next',
     '/favicon.ico',
     '/manifest.json',
@@ -23,6 +24,7 @@ export async function middleware(request: NextRequest) {
     '/impresszum',
     '/aszf',
     '/onboarding',
+    '/subscribe',
   ]
   
   // Check if path is public
@@ -42,9 +44,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(onboardingUrl)
   }
   
-  // For authenticated users, check if they have an organization
-  // We can check via the session, but middleware cant easily call auth()
-  // So we rely on the client-side checks in setup-org and setup pages
+  // For authenticated users accessing dashboard routes, we need to check subscription
+  // This is handled in the page/layout level since middleware can't easily fetch from DB
+  // The root layout or dashboard layout will check subscription status
   
   return NextResponse.next()
 }
@@ -52,8 +54,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for static files
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|pwa-icons|icons|img|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

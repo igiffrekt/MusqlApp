@@ -25,6 +25,11 @@ model Organization {
   bankAccountName         String?
   bankAccountNumber       String?
   bankName                String?
+  setupToken              String?            @unique
+  trialEndsAt             DateTime?
+  setupCompletedAt        DateTime?
+  stripeSubscriptionId    String?            @unique
+  currency                String?            @default("EUR")
   groups                  Group[]
   joinRequests            JoinRequest[]
   locations               Location[]

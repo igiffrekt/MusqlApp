@@ -58,7 +58,7 @@ export function MobileOnboardingPricing({ onBack }: MobileOnboardingPricingProps
       }
 
       // Success - redirect to dashboard
-      router.push("/")
+      router.push("/subscribe")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Hiba történt")
       setLoading(false)
@@ -72,7 +72,7 @@ export function MobileOnboardingPricing({ onBack }: MobileOnboardingPricingProps
     } catch (e) {
       console.error("Failed to mark setup complete:", e)
     }
-    router.push("/")
+    router.push("/subscribe")
   }
 
   const formatCurrency = (value: string) => {
