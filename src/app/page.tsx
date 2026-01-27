@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import DashboardPage from './(dashboard)/page'
-import LandingPage from './(landing)/page'
+import LandingPage from '@/components/landing/LandingPage'
 
 export default async function HomePage() {
   console.log('[HOME] Starting...')

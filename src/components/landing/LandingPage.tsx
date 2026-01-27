@@ -4,7 +4,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { 
   Users, Calendar, CreditCard, Bell, 
-  BarChart3, Shield, Smartphone, Clock,
+  BarChart3, Shield, Smartphone,
   CheckCircle2, ArrowRight, Star, Zap
 } from "lucide-react"
 
@@ -114,12 +114,6 @@ const testimonials = [
     rating: 5,
   },
 ]
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5 }
-}
 
 export default function LandingPage() {
   return (
@@ -385,7 +379,7 @@ export default function LandingPage() {
                     <Star key={j} className="w-4 h-4 fill-[#D2F159] text-[#D2F159]" />
                   ))}
                 </div>
-                <p className="text-white/80 mb-4">"{t.text}"</p>
+                <p className="text-white/80 mb-4">&ldquo;{t.text}&rdquo;</p>
                 <div>
                   <p className="font-semibold">{t.name}</p>
                   <p className="text-sm text-white/50">{t.role}</p>
