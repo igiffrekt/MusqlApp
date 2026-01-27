@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { requireAuth } from "@/lib/auth-utils"
 import { sanitizeString } from "@/lib/validation"
+import { checkLicenseLimit, limitExceededResponse } from "@/lib/license-check"
 
 /**
  * GET /api/locations - Fetch all locations for the organization
- * @returns {Location[]} Array of locations
- * @auth Required
  */
 export async function GET() {
   try {
@@ -46,14 +45,6 @@ export async function GET() {
 
 /**
  * POST /api/locations - Create a new location
- * @body {string} name - Location name (required)
- * @body {string} address - Street address (optional)
- * @body {string} city - City (optional)
- * @body {string} phone - Phone number (optional)
- * @body {string} email - Email (optional)
- * @body {number} capacity - Capacity (optional)
- * @returns {Location} Created location object
- * @auth Required
  */
 export async function POST(request: NextRequest) {
   try {
@@ -64,9 +55,14 @@ export async function POST(request: NextRequest) {
 
     const { organizationId } = authResult
 
+    // Check license limit BEFORE creating
+    const limitCheck = await checkLicenseLimit(organizationId, 'locations')
+    if (!limitCheck.allowed) {
+      return NextResponse.json(limitExceededResponse(limitCheck), { status: 403 })
+    }
+
     const { name, address, city, phone, email, capacity } = await request.json()
 
-    // Validate required fields
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json(
         { message: "A helyszín neve kötelező" },

@@ -3,13 +3,11 @@ import { prisma } from "@/lib/db"
 import { requireAuth } from "@/lib/auth-utils"
 import { notifyNewStudent } from "@/lib/notifications"
 import { validateStudentData } from "@/lib/validation"
+import { checkLicenseLimit, limitExceededResponse } from "@/lib/license-check"
 import type { Prisma } from "@prisma/client"
 
 /**
  * GET /api/students - Fetch all students for the organization
- * @query {boolean} active - Filter by active status only
- * @returns {Student[]} Array of students
- * @auth Required
  */
 export async function GET(request: NextRequest) {
   try {
@@ -50,7 +48,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Transform to include groups as array of IDs and extract guardian from emergencyContact
+    // Transform to include groups as array of IDs and extract guardian
     const transformedStudents = students.map((student) => {
       let guardian: string | undefined
       if (student.emergencyContact) {
@@ -87,15 +85,6 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/students - Create a new student
- * @body {string} firstName - Student's first name (required)
- * @body {string} lastName - Student's last name (required)
- * @body {string} email - Student's email (optional)
- * @body {string} phone - Student's phone number (optional)
- * @body {string} beltLevel - Current belt level (optional)
- * @body {object} emergencyContact - Emergency contact info (optional)
- * @body {string} medicalInfo - Medical information (optional)
- * @returns {Student} Created student object
- * @auth Required
  */
 export async function POST(request: NextRequest) {
   try {
@@ -106,6 +95,12 @@ export async function POST(request: NextRequest) {
 
     const { organizationId } = authResult
 
+    // Check license limit BEFORE creating
+    const limitCheck = await checkLicenseLimit(organizationId, 'students')
+    if (!limitCheck.allowed) {
+      return NextResponse.json(limitExceededResponse(limitCheck), { status: 403 })
+    }
+
     const {
       firstName,
       lastName,
@@ -114,7 +109,7 @@ export async function POST(request: NextRequest) {
       beltLevel,
       emergencyContact,
       medicalInfo,
-      guardian, // Simple guardian name field
+      guardian,
     } = await request.json()
 
     // Validate student data
@@ -126,7 +121,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Build emergency contact - either use provided object or create from guardian name
+    // Build emergency contact
     let emergencyContactData = null
     if (emergencyContact) {
       emergencyContactData = JSON.stringify(emergencyContact)
@@ -157,7 +152,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Trigger new student notification (async, don't block response)
+    // Trigger notification (async)
     notifyNewStudent(student.id).catch((error) => {
       console.error("Failed to send new student notification:", error)
     })

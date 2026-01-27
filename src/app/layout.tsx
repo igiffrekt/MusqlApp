@@ -4,6 +4,7 @@ import "./globals.css";
 import { PWAInstallPrompt } from "@/components/pwa/PWAInstallPrompt";
 import { PWARegistration } from "@/components/pwa/PWARegistration";
 import { Providers } from "@/components/providers";
+import { UpgradePromptGlobal } from "@/components/UpgradePrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +48,7 @@ export default function RootLayout({
           {children}
           <PWAInstallPrompt />
           <PWARegistration />
+          <UpgradePromptGlobal />
         </Providers>
       </body>
     </html>

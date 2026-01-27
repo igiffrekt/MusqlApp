@@ -2,14 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { requireAuth } from "@/lib/auth-utils"
 import { isValidDate } from "@/lib/validation"
+import { checkLicenseLimit, limitExceededResponse } from "@/lib/license-check"
 
 /**
  * GET /api/sessions - Fetch training sessions for the organization
- * @query {boolean} upcoming - Filter to only upcoming sessions
- * @query {string} startDate - Filter sessions from this date (ISO format)
- * @query {string} endDate - Filter sessions until this date (ISO format)
- * @returns {Session[]} Array of sessions with trainer info and attendance count
- * @auth Required
  */
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +20,6 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
 
-    // Validate date parameters
     if (startDate && !isValidDate(startDate)) {
       return NextResponse.json(
         { message: "Invalid startDate format" },
@@ -61,7 +56,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Get total active members for this organization
     const activeMembers = await prisma.student.count({
       where: {
         organizationId,
@@ -102,7 +96,6 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Add activeMembers to each session for display
     const sessionsWithMembers = sessions.map(session => ({
       ...session,
       totalMembers: activeMembers,
@@ -127,6 +120,12 @@ export async function POST(request: NextRequest) {
 
     const { organizationId, user } = authResult
 
+    // Check license limit BEFORE creating
+    const limitCheck = await checkLicenseLimit(organizationId, 'sessions')
+    if (!limitCheck.allowed) {
+      return NextResponse.json(limitExceededResponse(limitCheck), { status: 403 })
+    }
+
     const {
       title,
       description,
@@ -142,7 +141,6 @@ export async function POST(request: NextRequest) {
 
     const trainerId = user.id
 
-    // Validate required fields
     if (!title || !startTime || !endTime) {
       return NextResponse.json(
         { message: "Title, start time, and end time are required" },
@@ -150,7 +148,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate time logic
     const start = new Date(startTime)
     const end = new Date(endTime)
 
@@ -161,7 +158,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If locationId is provided, verify it belongs to the organization
     let locationName = location
     if (locationId) {
       const locationRecord = await prisma.location.findFirst({
@@ -173,7 +169,6 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      // Use location name as the display string
       locationName = locationRecord.name
     }
 
