@@ -7,8 +7,10 @@ import {
   Users, Calendar, CreditCard, Bell, 
   BarChart3, Shield, Smartphone,
   CheckCircle2, ArrowRight, Star, Zap,
-  Play, ChevronRight, Sparkles
+  Play, ChevronRight, Sparkles,
+  TrendingUp, Clock, MapPin
 } from "lucide-react"
+import { ContainerScroll } from "@/components/ui/container-scroll-animation"
 
 // Animated section wrapper with reveal
 const RevealSection = ({ children, className = "", delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) => {
@@ -397,26 +399,126 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* Logos Section */}
-      <section className="relative py-16 px-6 border-y border-gray-100 bg-white">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-sm text-gray-400 mb-8 uppercase tracking-wide font-medium">Megbíznak bennünk</p>
-          <div className="flex justify-center items-center gap-12 flex-wrap opacity-40 grayscale">
-            {["Fitness First", "YogaLife", "FightClub", "CrossFit BP", "GymHero"].map((name, i) => (
-              <motion.div 
-                key={name}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ delay: i * 0.1 }}
-                viewport={{ once: true }}
-                className="text-xl font-bold text-gray-900"
-              >
-                {name}
-              </motion.div>
+      {/* Product Preview with Scroll Animation */}
+      <ContainerScroll
+        titleComponent={
+          <div className="mb-8">
+            <span className="text-[#9EBB35] text-sm font-semibold tracking-wide uppercase mb-4 block">
+              Ismerd meg a platformot
+            </span>
+            <h2 className="text-4xl md:text-6xl font-bold text-gray-900">
+              Minden egy helyen,{" "}
+              <span className="relative inline-block">
+                átláthatóan
+                <svg className="absolute -bottom-1 left-0 w-full h-3" viewBox="0 0 200 8" preserveAspectRatio="none">
+                  <path d="M0,6 Q100,0 200,6" stroke="#D2F159" strokeWidth="5" fill="none" strokeLinecap="round"/>
+                </svg>
+              </span>
+            </h2>
+          </div>
+        }
+      >
+        {/* Dashboard Mockup */}
+        <div className="h-full w-full bg-white p-6 overflow-hidden">
+          {/* Top bar */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-[#D2F159] to-[#b8d94e] rounded-lg flex items-center justify-center">
+                <span className="text-sm">💪</span>
+              </div>
+              <span className="font-bold text-gray-900">Musql</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-100" />
+              <span className="text-sm text-gray-600">Demo Stúdió</span>
+            </div>
+          </div>
+          
+          {/* Stats row */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {[
+              { label: "Aktív tagok", value: "127", icon: Users, change: "+12%" },
+              { label: "Mai órák", value: "8", icon: Calendar, change: "3 hátra" },
+              { label: "Havi bevétel", value: "847k", icon: TrendingUp, change: "+23%" },
+              { label: "Jelenlét", value: "89%", icon: CheckCircle2, change: "+5%" },
+            ].map((stat, i) => (
+              <div key={i} className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <stat.icon className="w-5 h-5 text-gray-400" />
+                  <span className="text-xs text-green-600 font-medium">{stat.change}</span>
+                </div>
+                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                <div className="text-xs text-gray-500">{stat.label}</div>
+              </div>
             ))}
           </div>
+          
+          {/* Main content */}
+          <div className="grid grid-cols-3 gap-4">
+            {/* Schedule */}
+            <div className="col-span-2 bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-semibold text-gray-900">Mai órarend</span>
+                <span className="text-xs text-gray-500">Január 27.</span>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { time: "09:00", name: "Reggeli jóga", trainer: "Kiss Anna", spots: "12/15", status: "done" },
+                  { time: "11:00", name: "HIIT Training", trainer: "Nagy Péter", spots: "8/10", status: "done" },
+                  { time: "14:00", name: "BJJ Alapok", trainer: "Szabó Márk", spots: "14/20", status: "active" },
+                  { time: "17:00", name: "CrossFit WOD", trainer: "Tóth Gábor", spots: "6/12", status: "upcoming" },
+                  { time: "19:00", name: "Esti jóga", trainer: "Kiss Anna", spots: "9/15", status: "upcoming" },
+                ].map((session, i) => (
+                  <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${
+                    session.status === 'active' ? 'bg-[#D2F159]/20 border border-[#D2F159]/30' : 
+                    session.status === 'done' ? 'bg-gray-100 opacity-60' : 'bg-white border border-gray-100'
+                  }`}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-mono text-gray-500 w-12">{session.time}</span>
+                      <div>
+                        <div className="font-medium text-gray-900 text-sm">{session.name}</div>
+                        <div className="text-xs text-gray-500">{session.trainer}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">{session.spots}</span>
+                      {session.status === 'active' && (
+                        <span className="px-2 py-0.5 bg-[#D2F159] text-gray-900 text-xs font-medium rounded-full">Folyamatban</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Recent members */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-semibold text-gray-900">Új tagok</span>
+                <span className="text-xs text-[#9EBB35] font-medium">+5 e héten</span>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { name: "Horváth Lilla", plan: "Prémium", days: "2 napja" },
+                  { name: "Molnár Bence", plan: "Alap", days: "3 napja" },
+                  { name: "Varga Eszter", plan: "Prémium", days: "5 napja" },
+                  { name: "Fekete Ádám", plan: "Alap", days: "6 napja" },
+                ].map((member, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                      <span className="text-xs font-medium text-gray-600">{member.name.charAt(0)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-gray-900 truncate">{member.name}</div>
+                      <div className="text-xs text-gray-500">{member.plan} • {member.days}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
+      </ContainerScroll>
 
       {/* Features Section */}
       <section id="funkciok" className="relative py-32 px-6">
