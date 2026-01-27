@@ -16,7 +16,7 @@ import { ContainerScroll } from "@/components/ui/container-scroll-animation"
 // Musql Logo component
 const MusqlLogo = ({ size = 40, className = "" }: { size?: number, className?: string }) => (
   <Image 
-    src="/img/musql_ikon.png" 
+    src="/img/musql_logo.png" 
     alt="Musql" 
     width={size} 
     height={size} 
