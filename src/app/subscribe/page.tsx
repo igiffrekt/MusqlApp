@@ -151,42 +151,55 @@ export default function SubscribePage() {
 
         {/* Billing Toggle */}
         <div className="px-6 py-4">
-          <div className="bg-[#252a32] rounded-2xl p-1.5 flex relative">
-            <button
-              onClick={() => setBillingPeriod('monthly')}
-              className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
-                billingPeriod === 'monthly'
-                  ? 'bg-[#171725] text-white'
-                  : 'text-white/40'
-              }`}
-            >
-              Havi
-            </button>
-            <button
-              onClick={() => setBillingPeriod('annual')}
-              className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all relative ${
-                billingPeriod === 'annual'
-                  ? 'bg-[#D2F159] text-[#171725]'
-                  : 'text-white/40'
-              }`}
-            >
-              Éves
-            </button>
-          </div>
-          
-          {/* 2 months free - more prominent, separate */}
-          <div className={`mt-3 transition-all ${billingPeriod === 'annual' ? 'opacity-100' : 'opacity-50'}`}>
-            <div className="bg-[#D2F159] text-[#171725] rounded-xl py-2.5 px-4 flex items-center justify-center gap-2">
-              <span className="text-xl">🎁</span>
-              <span className="font-bold">2 HÓNAP INGYEN</span>
-              <span className="text-sm font-medium">– Spórolj {formatPrice(savings, currency)}-t!</span>
+          <div className="relative">
+            {/* 2 months free badge - positioned above Éves button */}
+            <div className="absolute -top-1 right-0 w-1/2 flex justify-center z-10">
+              <div className="relative -translate-y-full mb-1">
+                <div className="bg-[#D2F159] text-[#171725] rounded-lg py-1 px-2 text-[10px] font-bold whitespace-nowrap">
+                  🎁 2 HÓNAP INGYEN
+                </div>
+                {/* Arrow pointing down */}
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full">
+                  <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#D2F159]"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-[#252a32] rounded-2xl p-1.5 flex">
+              <button
+                onClick={() => setBillingPeriod('monthly')}
+                className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
+                  billingPeriod === 'monthly'
+                    ? 'bg-[#171725] text-white'
+                    : 'text-white/40'
+                }`}
+              >
+                Havi
+              </button>
+              <button
+                onClick={() => setBillingPeriod('annual')}
+                className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
+                  billingPeriod === 'annual'
+                    ? 'bg-[#D2F159] text-[#171725]'
+                    : 'text-white/40'
+                }`}
+              >
+                Éves
+              </button>
             </div>
           </div>
+          
+          {/* Savings info */}
+          {billingPeriod === 'annual' && (
+            <p className="text-center text-[#D2F159] text-sm font-medium mt-3">
+              💰 Spórolj {formatPrice(savings, currency)}-t évente!
+            </p>
+          )}
           
           {/* Subtle nudge for monthly */}
           {billingPeriod === 'monthly' && (
             <p className="text-center text-white/40 text-xs mt-2">
-              ↑ Válts évesre és spórolj <span className="text-[#D2F159]">{formatPrice(savings, currency)}</span>-t
+              Válts évesre és spórolj <span className="text-[#D2F159]">{formatPrice(savings, currency)}</span>-t
             </p>
           )}
         </div>
