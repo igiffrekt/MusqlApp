@@ -27,6 +27,11 @@ export async function middleware(request: NextRequest) {
     '/subscribe',
   ]
   
+  // Root path shows landing page for unauthenticated users
+  if (pathname === '/') {
+    return NextResponse.next()
+  }
+  
   // Check if path is public
   const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
   
