@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
     '/api/health',
     '/api/dev',
     '/api/organizations/lookup',
-    '/api/subscribe/resume',
+    '/api/subscribe',
     '/api/webhooks',
     '/_next',
     '/favicon.ico',

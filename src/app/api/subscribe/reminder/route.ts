@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { sendEmail } from '@/lib/notifications'
 
-// This endpoint can be called by a cron job to send reminder emails
-
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -15,15 +13,12 @@ export async function POST(request: NextRequest) {
 
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
     
+    // Simplified query - find orgs that need reminders
     const pendingOrgs = await prisma.organization.findMany({
       where: {
         setupToken: { not: null },
         setupCompletedAt: null,
         createdAt: { lt: oneHourAgo },
-        OR: [
-          { trialEndsAt: null },
-          { trialEndsAt: { gt: new Date() } },
-        ],
       },
       include: {
         users: {
@@ -33,11 +28,30 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // If no pending orgs, return early
+    if (pendingOrgs.length === 0) {
+      return NextResponse.json({ 
+        sent: 0,
+        failed: 0,
+        message: 'No pending organizations found',
+        results: [],
+      })
+    }
+
     const results = []
 
     for (const org of pendingOrgs) {
       const admin = org.users[0]
-      if (!admin?.email) continue
+      if (!admin?.email) {
+        results.push({ orgId: org.id, status: 'skipped', reason: 'no admin email' })
+        continue
+      }
+
+      // Skip if trial has expired
+      if (org.trialEndsAt && new Date() > org.trialEndsAt) {
+        results.push({ orgId: org.id, status: 'skipped', reason: 'trial expired' })
+        continue
+      }
 
       const resumeUrl = `https://musql.app/subscribe/resume/${org.setupToken}`
       const trialEndDate = org.trialEndsAt 
@@ -92,6 +106,7 @@ export async function POST(request: NextRequest) {
         })
         results.push({ orgId: org.id, email: admin.email, status: 'sent' })
       } catch (err) {
+        console.error('Email send error:', err)
         results.push({ orgId: org.id, email: admin.email, status: 'failed', error: String(err) })
       }
     }
@@ -99,12 +114,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       sent: results.filter(r => r.status === 'sent').length,
       failed: results.filter(r => r.status === 'failed').length,
+      skipped: results.filter(r => r.status === 'skipped').length,
       results,
     })
   } catch (error) {
-    console.error('Reminder email error:', error)
+    console.error('Reminder endpoint error:', error)
     return NextResponse.json(
-      { error: 'Failed to send reminders' },
+      { error: 'Failed to send reminders', details: String(error) },
       { status: 500 }
     )
   }
@@ -114,7 +130,16 @@ export async function GET(request: NextRequest) {
   const orgId = request.nextUrl.searchParams.get('orgId')
   
   if (!orgId) {
-    return NextResponse.json({ error: 'orgId required' }, { status: 400 })
+    // Return stats
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+    const count = await prisma.organization.count({
+      where: {
+        setupToken: { not: null },
+        setupCompletedAt: null,
+        createdAt: { lt: oneHourAgo },
+      },
+    })
+    return NextResponse.json({ pendingOrganizations: count })
   }
 
   const org = await prisma.organization.findUnique({
@@ -132,14 +157,12 @@ export async function GET(request: NextRequest) {
   }
 
   const admin = org.users[0]
-  if (!admin?.email) {
-    return NextResponse.json({ error: 'No admin email found' }, { status: 400 })
-  }
-
+  
   return NextResponse.json({ 
     organization: org.name,
-    adminEmail: admin.email,
+    adminEmail: admin?.email || null,
     setupToken: org.setupToken,
+    setupCompletedAt: org.setupCompletedAt,
     resumeUrl: org.setupToken ? `https://musql.app/subscribe/resume/${org.setupToken}` : null,
   })
 }
