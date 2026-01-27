@@ -2,14 +2,15 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { MapPin, Phone, Loader2 } from "lucide-react"
+import { MapPin, Phone, Loader2, ChevronLeft } from "lucide-react"
 import { AddressAutocomplete } from "@/components/ui/AddressAutocomplete"
 
 interface MobileOnboardingLocationProps {
   onNext: (locationId: string, locationName: string) => void
+  onBack?: () => void
 }
 
-export function MobileOnboardingLocation({ onNext }: MobileOnboardingLocationProps) {
+export function MobileOnboardingLocation({ onNext, onBack }: MobileOnboardingLocationProps) {
   const [name, setName] = useState("")
   const [address, setAddress] = useState("")
   const [phone, setPhone] = useState("")
@@ -55,6 +56,18 @@ export function MobileOnboardingLocation({ onNext }: MobileOnboardingLocationPro
   return (
     <div className="min-h-screen bg-[#171725] font-lufga">
       <div className="px-6 pt-14 pb-6">
+        {/* Back button */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-white/60 mb-4"
+            disabled={loading}
+          >
+            <ChevronLeft className="w-5 h-5" />
+            <span>Vissza</span>
+          </button>
+        )}
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-[#D2F159] rounded-full flex items-center justify-center mx-auto mb-4">

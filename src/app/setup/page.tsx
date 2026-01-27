@@ -203,7 +203,7 @@ export default function SetupPage() {
   return (
     <>
       {step === "location" && (
-        <MobileOnboardingLocation onNext={handleLocationNext} />
+        <MobileOnboardingLocation onNext={handleLocationNext} onBack={() => router.push("/auth/setup-org")} />
       )}
       {step === "session" && locationId && (
         <MobileOnboardingSession

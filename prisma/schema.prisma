@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,294 +6,251 @@ datasource db {
   provider = "postgresql"
 }
 
-// Multi-tenant organization model
 model Organization {
-  id                String   @id @default(cuid())
-  name              String
-  slug              String   @unique  // URL-safe code for students to join
-  licenseTier       LicenseTier @default(STARTER)
-  subscriptionStatus SubscriptionStatus @default(TRIAL)
-  stripeCustomerId  String?  @unique
-  settings          String   @default("{}")
-  notificationSettings String? @default("{}")
-  
-  // Pricing (in HUF)
-  monthlyPassPrice        Int?     // Havi bérlet díj
-  monthlyPassStudentPrice Int?     // Havi bérlet díj diákoknak
-  dailyPrice              Int?     // Napidíj
-  dailyStudentPrice       Int?     // Napidíj diákoknak
-  privateSessionPrice     Int?     // Egyéni óra díj (optional)
-  
-  // Bank account for receiving payments
-  bankAccountName   String?  // Számlatulajdonos neve
-  bankAccountNumber String?  // Bankszámlaszám (8-8-8 or IBAN)
-  bankName          String?  // Bank neve (optional)
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  // Relations
-  users             User[]
-  students          Student[]
-  sessions          Session[]
-  roles             Role[]
-  groups            Group[]
-  joinRequests      JoinRequest[]
-  locations         Location[]
+  id                      String             @id @default(cuid())
+  name                    String
+  licenseTier             LicenseTier        @default(STARTER)
+  subscriptionStatus      SubscriptionStatus @default(TRIAL)
+  stripeCustomerId        String?            @unique
+  settings                String             @default("{}")
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+  notificationSettings    String?            @default("{}")
+  slug                    String             @unique
+  dailyPrice              Int?
+  dailyStudentPrice       Int?
+  monthlyPassPrice        Int?
+  monthlyPassStudentPrice Int?
+  privateSessionPrice     Int?
+  bankAccountName         String?
+  bankAccountNumber       String?
+  bankName                String?
+  groups                  Group[]
+  joinRequests            JoinRequest[]
+  locations               Location[]
+  roles                   Role[]
+  sessions                Session[]
+  students                Student[]
+  users                   User[]
 
   @@map("organizations")
 }
 
-// Training location/venue model
 model Location {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   name           String
   address        String?
   city           String?
   phone          String?
   email          String?
   capacity       Int?
-  organizationId String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   sessions       Session[]
 
   @@map("locations")
 }
 
-// Join request for students wanting to join an organization
 model JoinRequest {
   id             String            @id @default(cuid())
   email          String
   name           String
   phone          String?
-  message        String?           // Optional message from student
-  organizationId String
+  message        String?
+  organizationId String?
   status         JoinRequestStatus @default(PENDING)
-  processedBy    String?           // User ID who approved/rejected
+  processedBy    String?
   processedAt    DateTime?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
-
-  // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([email, organizationId])
   @@map("join_requests")
 }
 
-// Training groups with pricing
 model Group {
-  id             String   @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String
   description    String?
-  organizationId String
-  dailyFee       Float    @default(0)
-  monthlyFee     Float    @default(0)
-  currency       String   @default("HUF")
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String?
+  dailyFee       Float          @default(0)
+  monthlyFee     Float          @default(0)
+  currency       String         @default("HUF")
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   students       StudentGroup[]
 
   @@map("groups")
 }
 
-// Many-to-many relationship between Students and Groups
 model StudentGroup {
   id        String   @id @default(cuid())
   studentId String
   groupId   String
   joinedAt  DateTime @default(now())
-
-  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  group     Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, groupId])
   @@map("student_groups")
 }
 
-// User roles and permissions
 model Role {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   name           String
-  organizationId String
-  permissions    String   @default("[]") // Array of permission strings
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String?
+  permissions    String        @default("[]")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   users          User[]
 
   @@unique([name, organizationId])
   @@map("roles")
 }
 
-// User model with NextAuth integration
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  phone         String?
-  image         String?
-  password      String?
-  role          UserRole  @default(STUDENT)
-  organizationId String
-  roleId        String?
-  emailVerified DateTime?
-  notificationPreferences String? @default("{}")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  customRole     Role?        @relation(fields: [roleId], references: [id])
-  sessions       Session[]    @relation("TrainerSessions")
-  attendances    Attendance[]
-  notifications  Notification[]
-  pushSubscriptions PushSubscription[]
-  student        Student?     // Link to Student record for STUDENT role users
-
-  // NextAuth
-  accounts      Account[]
-  authSessions  AuthSession[] @relation("UserSessions")
+  id                      String             @id @default(cuid())
+  email                   String             @unique
+  name                    String?
+  image                   String?
+  password                String?
+  role                    UserRole           @default(STUDENT)
+  organizationId          String?
+  roleId                  String?
+  emailVerified           DateTime?
+  notificationPreferences String?            @default("{}")
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+  phone                   String?
+  accounts                Account[]
+  attendances             Attendance[]
+  authSessions            AuthSession[]      @relation("UserSessions")
+  notifications           Notification[]
+  pushSubscriptions       PushSubscription[]
+  sessions                Session[]          @relation("TrainerSessions")
+  student                 Student?
+  organization            Organization?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customRole              Role?              @relation(fields: [roleId], references: [id])
 
   @@map("users")
 }
 
-// Student model
 model Student {
-  id             String     @id @default(cuid())
-  firstName      String
-  lastName       String
-  email          String?
-  phone          String?
-  dateOfBirth    DateTime?
-  address        String?
-  emergencyContact String?    // {name: string, phone: string, relationship: string}
-  medicalInfo    String?
-  beltLevel      String?    // For martial arts progression
-  status         StudentStatus @default(ACTIVE)
-  photo          String?    // URL to uploaded photo
-  documents      String?      @default("[]") // Array of document URLs
-  organizationId String
-  userId         String?    @unique  // Link to User for authenticated students
-  notificationPreferences String? @default("{}")
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-
-  // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User?        @relation(fields: [userId], references: [id])
-  attendances    Attendance[]
-  payments       Payment[]
-  paymentPlans   PaymentPlan[]
-  groups         StudentGroup[]
+  id                      String         @id @default(cuid())
+  firstName               String
+  lastName                String
+  email                   String?
+  phone                   String?
+  dateOfBirth             DateTime?
+  address                 String?
+  emergencyContact        String?
+  medicalInfo             String?
+  beltLevel               String?
+  status                  StudentStatus  @default(ACTIVE)
+  photo                   String?
+  documents               String?        @default("[]")
+  organizationId          String?
+  notificationPreferences String?        @default("{}")
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  userId                  String?        @unique
+  attendances             Attendance[]
+  paymentPlans            PaymentPlan[]
+  payments                Payment[]
+  groups                  StudentGroup[]
+  organization            Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                    User?          @relation(fields: [userId], references: [id])
 
   @@map("students")
 }
 
-// Session model
 model Session {
-  id             String     @id @default(cuid())
+  id             String        @id @default(cuid())
   title          String
   description    String?
   trainerId      String
-  organizationId String
+  organizationId String?
   startTime      DateTime
   endTime        DateTime
-  capacity       Int        @default(10)
-  locationId     String?    // Reference to Location model
-  location       String?    // Room or location name (kept for backwards compat)
-  sessionType    SessionType @default(REGULAR)
-  isRecurring    Boolean    @default(false)
-  recurringRule  String?      // RRULE for recurring sessions
+  capacity       Int           @default(10)
+  location       String?
+  sessionType    SessionType   @default(REGULAR)
+  isRecurring    Boolean       @default(false)
+  recurringRule  String?
   status         SessionStatus @default(SCHEDULED)
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-
-  // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  trainer        User         @relation("TrainerSessions", fields: [trainerId], references: [id])
-  locationRef    Location?    @relation(fields: [locationId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  locationId     String?
   attendances    Attendance[]
+  locationRef    Location?     @relation(fields: [locationId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  trainer        User          @relation("TrainerSessions", fields: [trainerId], references: [id])
 
   @@map("sessions")
 }
 
-// Attendance tracking
 model Attendance {
-  id         String            @id @default(cuid())
-  sessionId  String
-  studentId  String
-  userId     String            // Who marked attendance
-  status     AttendanceStatus  @default(PRESENT)
+  id          String           @id @default(cuid())
+  sessionId   String
+  studentId   String
+  userId      String
+  status      AttendanceStatus @default(PRESENT)
   checkInTime DateTime?
-  notes      String?
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
-
-  // Relations
-  session    Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  student    Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  markedBy   User    @relation(fields: [userId], references: [id])
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  session     Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student     Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  markedBy    User             @relation(fields: [userId], references: [id])
 
   @@unique([sessionId, studentId])
   @@map("attendance")
 }
 
-// Payment plans
 model PaymentPlan {
-  id            String         @id @default(cuid())
-  studentId     String
-  name          String
-  amount        Float
-  frequency     PaymentFrequency
-  startDate     DateTime
-  endDate       DateTime?
-  description   String?
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  // Relations
-  student       Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  payments      Payment[]
+  id          String           @id @default(cuid())
+  studentId   String
+  name        String
+  amount      Float
+  frequency   PaymentFrequency
+  startDate   DateTime
+  endDate     DateTime?
+  description String?
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  student     Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  payments    Payment[]
 
   @@map("payment_plans")
 }
 
-// Payment tracking
 model Payment {
-  id                String        @id @default(cuid())
-  studentId         String
-  paymentPlanId     String?
-  amount            Float
-  paymentType       PaymentType   @default(TUITION)
-  status            PaymentStatus @default(PENDING)
-  dueDate           DateTime
-  paidDate          DateTime?
-  paymentMethod     PaymentMethod @default(CASH)
+  id                    String        @id @default(cuid())
+  studentId             String
+  paymentPlanId         String?
+  amount                Float
+  paymentType           PaymentType   @default(TUITION)
+  status                PaymentStatus @default(PENDING)
+  dueDate               DateTime
+  paidDate              DateTime?
+  paymentMethod         PaymentMethod @default(CASH)
   stripePaymentIntentId String?
-  notes             String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-
-  // Relations
-  student           Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  paymentPlan       PaymentPlan?  @relation(fields: [paymentPlanId], references: [id])
+  notes                 String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  paymentPlan           PaymentPlan?  @relation(fields: [paymentPlanId], references: [id])
+  student               Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("payments")
 }
 
-// NextAuth Account model
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -310,14 +264,12 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
 }
 
-// NextAuth Session model
 model AuthSession {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -328,7 +280,6 @@ model AuthSession {
   @@map("auth_sessions")
 }
 
-// NextAuth VerificationToken model
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -338,12 +289,40 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// Enums
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  read      Boolean          @default(false)
+  actionUrl String?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, endpoint])
+  @@map("push_subscriptions")
+}
+
 enum LicenseTier {
-  STARTER       // 9,990 Ft/month - up to 30 members, 1 coach, 1 location
-  PRO           // 29,990 Ft/month - up to 150 members, 5 coaches, 2 locations
-  PROFESSIONAL  // Legacy - same as PRO
-  ENTERPRISE    // Elite+ - 99,990 Ft/month - unlimited everything
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+  PRO
 }
 
 enum SubscriptionStatus {
@@ -430,38 +409,6 @@ enum PaymentMethod {
   STRIPE
   PAYPAL
   OTHER
-}
-
-// Notification system
-model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  message   String
-  type      NotificationType @default(INFO)
-  read      Boolean  @default(false)
-  actionUrl String?
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("notifications")
-}
-
-model PushSubscription {
-  id          String @id @default(cuid())
-  userId      String
-  endpoint    String
-  p256dh      String
-  auth        String
-  userAgent   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, endpoint])
-  @@map("push_subscriptions")
 }
 
 enum NotificationType {

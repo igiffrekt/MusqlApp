@@ -46,13 +46,13 @@ export default function AdminLayout({
     if (status === "loading") return
 
     if (!session) {
-      router.push("/auth/signin")
+      router.push("/auth/admin")
       return
     }
 
     // Check if user is SUPER_ADMIN
     if (session.user?.role !== "SUPER_ADMIN") {
-      router.push("/")
+      router.push("/auth/admin")
       return
     }
   }, [session, status, router])
@@ -153,7 +153,7 @@ export default function AdminLayout({
               </div>
             </div>
             <button
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => signOut({ callbackUrl: "/onboarding" })}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
             >
               <LogOut className="w-5 h-5" />

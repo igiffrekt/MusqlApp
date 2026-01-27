@@ -102,6 +102,13 @@ export default function DashboardPage() {
   const isAdmin = userRole === "ADMIN" || userRole === "TRAINER"
   const isStudent = userRole === "STUDENT"
 
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/onboarding")
+    }
+  }, [status, router])
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
@@ -339,6 +346,15 @@ export default function DashboardPage() {
     if (isToday(date)) return "Today"
     if (isTomorrow(date)) return "Tomorrow"
     return format(date, "MMM d, yyyy")
+  }
+
+  // Wait for auth to be determined
+  if (status === "loading" || status === "unauthenticated") {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-400"></div>
+      </div>
+    )
   }
 
   if (loading) {

@@ -30,66 +30,53 @@ export default function AuthLanding() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: "#171725" }}>
+    <div className="h-[100dvh] flex flex-col bg-[#171725] overflow-hidden">
       {/* Hidden Super Admin Button */}
       <button
         onClick={handleSuperAdminLogin}
         disabled={isLoading}
-        className="absolute top-6 right-6 z-20 w-8 h-8 flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity disabled:opacity-50"
+        className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity disabled:opacity-50"
         title="Super Admin"
       >
-        <Shield className="w-5 h-5 text-white" />
+        <Shield className="w-6 h-6 text-white" />
       </button>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
-        <div className="w-full max-w-[360px] mx-auto relative">
+      <div className="flex-1 flex flex-col justify-center px-5 py-6">
+        <div className="w-full max-w-md mx-auto">
+          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="text-center mb-8"
           >
-            <h1
-              className="text-3xl font-bold text-white mb-2"
-              style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-            >
+            <h1 className="text-3xl font-bold text-white mb-2">
               Üdvözlünk!
             </h1>
-            <p
-              className="text-white/70"
-              style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-            >
+            <p className="text-white/70 text-lg">
               Válaszd ki, hogyan szeretnél belépni
             </p>
           </motion.div>
 
-          <div className="flex flex-col gap-4 items-center">
+          {/* Cards - Side by side with equal height */}
+          <div className="grid grid-cols-2 gap-4 items-stretch">
             {/* Edzo Card */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 30 }}
+              transition={{ delay: 0.1 }}
+              className="h-full"
             >
-              <Link href="/auth/edzo/signin">
-                <div
-                  className="w-[250px] h-[250px] p-6 rounded-2xl border border-white/10 hover:border-[#D2F159]/50 transition-all cursor-pointer group flex flex-col items-center justify-center text-center"
-                  style={{ background: "rgba(255,255,255,0.05)" }}
-                >
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#D2F159] to-[#9BC53D] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+              <Link href="/auth/edzo/signin" className="block h-full">
+                <div className="h-full min-h-[180px] p-5 rounded-2xl border border-white/10 hover:border-[#D2F159]/50 transition-all cursor-pointer group flex flex-col items-center justify-center text-center bg-white/5">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D2F159] to-[#9BC53D] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform flex-shrink-0">
                     <Dumbbell className="w-8 h-8 text-[#171725]" />
                   </div>
-                  <h2
-                    className="text-xl font-bold text-white mb-2"
-                    style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-                  >
-                    Edző / Szervezet
+                  <h2 className="text-xl font-bold text-white mb-1">
+                    Edző
                   </h2>
-                  <p
-                    className="text-white/60 text-sm"
-                    style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-                  >
-                    Edzők, egyesületek bejelentkezése
+                  <p className="text-white/60 text-base whitespace-nowrap">
+                    Edzők, egyesületek
                   </p>
                 </div>
               </Link>
@@ -99,50 +86,40 @@ export default function AuthLanding() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 30 }}
+              transition={{ delay: 0.2 }}
+              className="h-full"
             >
-              <Link href="/auth/tag/signin">
-                <div
-                  className="w-[250px] h-[250px] p-6 rounded-2xl border border-white/10 hover:border-[#FF6F61]/50 transition-all cursor-pointer group flex flex-col items-center justify-center text-center"
-                  style={{ background: "rgba(255,255,255,0.05)" }}
-                >
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#FF6F61] to-[#E85A4F] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+              <Link href="/auth/tag/signin" className="block h-full">
+                <div className="h-full min-h-[180px] p-5 rounded-2xl border border-white/10 hover:border-[#FF6F61]/50 transition-all cursor-pointer group flex flex-col items-center justify-center text-center bg-white/5">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF6F61] to-[#E85A4F] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform flex-shrink-0">
                     <Users className="w-8 h-8 text-white" />
                   </div>
-                  <h2
-                    className="text-xl font-bold text-white mb-2"
-                    style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-                  >
+                  <h2 className="text-xl font-bold text-white mb-1">
                     Tag
                   </h2>
-                  <p
-                    className="text-white/60 text-sm"
-                    style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-                  >
-                    Egyesületi tagok, sportolók bejelentkezése
+                  <p className="text-white/60 text-base whitespace-nowrap">
+                    Sportolók, tagok
                   </p>
                 </div>
               </Link>
             </motion.div>
           </div>
 
+          {/* Footer */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
             className="mt-8 text-center"
           >
-            <p
-              className="text-white/50 text-sm"
-              style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-            >
+            <p className="text-white/50 text-base leading-relaxed">
               Még nincs fiókod?{" "}
-              <Link href="/auth/edzo/signup" className="text-[#D2F159] hover:text-[#D2F159]/80">
-                Regisztrálj edzőként/szervezetként
+              <Link href="/auth/edzo/signup" className="text-[#D2F159] hover:underline">
+                Regisztrálj edzőként
               </Link>
-              , vagy{" "}
-              <Link href="/auth/tag/join" className="text-[#FF6F61] hover:text-[#FF6F61]/80">
-                Csatlakozz tagként
+              {" "}vagy{" "}
+              <Link href="/auth/tag/join" className="text-[#FF6F61] hover:underline">
+                csatlakozz tagként
               </Link>
             </p>
           </motion.div>
