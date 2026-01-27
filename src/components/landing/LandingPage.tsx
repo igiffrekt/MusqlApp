@@ -585,18 +585,119 @@ export default function LandingPage() {
             </RevealSection>
             
             <RevealSection delay={0.2} className="relative">
-              <div className="relative bg-gradient-to-br from-gray-100 to-gray-50 rounded-[40px] p-8 shadow-2xl shadow-gray-200/50">
-                <div className="aspect-[9/16] bg-white rounded-[32px] shadow-xl flex items-center justify-center overflow-hidden border border-gray-100">
-                  <div className="text-center">
-                    <motion.div 
-                      animate={{ scale: [1, 1.05, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="mx-auto mb-4 shadow-xl shadow-[#D2F159]/30 rounded-2xl"
-                    >
-                      <MusqlLogo size={80} className="rounded-2xl" />
-                    </motion.div>
-                    <p className="text-gray-900 font-bold text-lg">Musql</p>
-                    <p className="text-gray-400 text-sm">Progressive Web App</p>
+              <div className="relative bg-gradient-to-br from-gray-100 to-gray-50 rounded-[40px] p-6 shadow-2xl shadow-gray-200/50">
+                {/* Phone frame */}
+                <div className="aspect-[9/19] bg-gray-900 rounded-[32px] shadow-xl overflow-hidden border-[8px] border-gray-900 relative">
+                  {/* Status bar */}
+                  <div className="bg-gray-900 px-6 py-2 flex items-center justify-between text-white text-xs">
+                    <span>9:41</span>
+                    <div className="absolute left-1/2 -translate-x-1/2 w-20 h-6 bg-black rounded-full" />
+                    <div className="flex items-center gap-1">
+                      <div className="flex gap-0.5">
+                        <div className="w-1 h-2 bg-white rounded-sm" />
+                        <div className="w-1 h-2.5 bg-white rounded-sm" />
+                        <div className="w-1 h-3 bg-white rounded-sm" />
+                        <div className="w-1 h-3.5 bg-white rounded-sm" />
+                      </div>
+                      <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.1 1 4 2.6 5.4L3 21l5-2.5c1.3.5 2.6.5 4 .5 5.5 0 10-3.6 10-8s-4.5-8-10-8z"/></svg>
+                      <div className="w-6 h-3 border border-white rounded-sm relative">
+                        <div className="absolute inset-0.5 bg-[#D2F159] rounded-sm" style={{ width: '80%' }} />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* App content */}
+                  <div className="bg-[#FAFAFA] h-full overflow-hidden">
+                    {/* App header */}
+                    <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <MusqlLogo size={28} />
+                        <span className="font-bold text-gray-900 text-sm">Musql</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                          <Bell className="w-4 h-4 text-gray-500" />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Quick stats */}
+                    <div className="px-4 py-3">
+                      <p className="text-xs text-gray-500 mb-2">Ma, Január 27.</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-white rounded-xl p-3 border border-gray-100">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Calendar className="w-4 h-4 text-[#D2F159]" />
+                            <span className="text-xs text-gray-500">Mai órák</span>
+                          </div>
+                          <p className="text-xl font-bold text-gray-900">5</p>
+                        </div>
+                        <div className="bg-white rounded-xl p-3 border border-gray-100">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Users className="w-4 h-4 text-[#D2F159]" />
+                            <span className="text-xs text-gray-500">Résztvevők</span>
+                          </div>
+                          <p className="text-xl font-bold text-gray-900">47</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Today's schedule */}
+                    <div className="px-4">
+                      <p className="text-xs font-semibold text-gray-900 mb-2">Következő óra</p>
+                      <div className="bg-[#D2F159] rounded-xl p-3 mb-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-semibold text-gray-900 text-sm">BJJ Alapok</span>
+                          <span className="text-xs bg-white/50 px-2 py-0.5 rounded-full text-gray-900">14:00</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-700">Szabó Márk</span>
+                          <span className="text-xs text-gray-700">14/20 hely</span>
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs font-semibold text-gray-900 mb-2 mt-3">Később ma</p>
+                      {[
+                        { time: "17:00", name: "CrossFit WOD", spots: "6/12" },
+                        { time: "19:00", name: "Esti jóga", spots: "9/15" },
+                      ].map((session, i) => (
+                        <div key={i} className="bg-white rounded-xl p-3 mb-2 border border-gray-100 flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-gray-900 text-sm">{session.name}</p>
+                            <p className="text-xs text-gray-500">{session.spots} hely</p>
+                          </div>
+                          <span className="text-xs text-gray-500 font-mono">{session.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Bottom nav */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 flex items-center justify-around">
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="w-6 h-6 bg-[#D2F159] rounded-lg flex items-center justify-center">
+                          <Calendar className="w-3.5 h-3.5 text-gray-900" />
+                        </div>
+                        <span className="text-[10px] text-gray-900 font-medium">Órarend</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="w-6 h-6 flex items-center justify-center">
+                          <Users className="w-4 h-4 text-gray-400" />
+                        </div>
+                        <span className="text-[10px] text-gray-400">Tagok</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="w-6 h-6 flex items-center justify-center">
+                          <BarChart3 className="w-4 h-4 text-gray-400" />
+                        </div>
+                        <span className="text-[10px] text-gray-400">Riportok</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="w-6 h-6 flex items-center justify-center">
+                          <CreditCard className="w-4 h-4 text-gray-400" />
+                        </div>
+                        <span className="text-[10px] text-gray-400">Pénzügy</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
