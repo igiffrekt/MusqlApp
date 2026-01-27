@@ -2,9 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth-utils'
-import { LICENSE_PRICES, TRIAL_PERIOD_DAYS, Currency } from '@/lib/config'
+import { TRIAL_PERIOD_DAYS, Currency } from '@/lib/config'
 import type { LicenseTier } from '@prisma/client'
 import crypto from 'crypto'
+
+// Monthly prices in smallest currency unit (cents/forint)
+const MONTHLY_PRICES: Record<string, Record<string, number>> = {
+  STARTER: { USD: 2900, EUR: 2700, HUF: 1090000 },
+  PROFESSIONAL: { USD: 7900, EUR: 7300, HUF: 2990000 },
+  ENTERPRISE: { USD: 19900, EUR: 18500, HUF: 7490000 },
+}
+
+// Annual = 10 months (2 months free)
+const getAnnualPrice = (tier: string, currency: string) => 
+  MONTHLY_PRICES[tier][currency] * 10
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { organizationId, userId } = authResult
-    const { licenseTier, currency = 'EUR' } = await request.json()
+    const { licenseTier, currency = 'EUR', billingPeriod = 'monthly' } = await request.json()
 
     // Validate tier
     if (!licenseTier || !['STARTER', 'PROFESSIONAL', 'ENTERPRISE'].includes(licenseTier)) {
@@ -24,6 +35,11 @@ export async function POST(request: NextRequest) {
     // Validate currency
     if (!['USD', 'EUR', 'HUF'].includes(currency)) {
       return NextResponse.json({ message: 'Invalid currency' }, { status: 400 })
+    }
+
+    // Validate billing period
+    if (!['monthly', 'annual'].includes(billingPeriod)) {
+      return NextResponse.json({ message: 'Invalid billing period' }, { status: 400 })
     }
 
     // Get organization and admin user
@@ -51,12 +67,16 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Get price amount
-    const priceAmount = LICENSE_PRICES[licenseTier as keyof typeof LICENSE_PRICES][currency as Currency]
+    // Get price amount based on billing period
+    const isAnnual = billingPeriod === 'annual'
+    const priceAmount = isAnnual 
+      ? getAnnualPrice(licenseTier, currency)
+      : MONTHLY_PRICES[licenseTier][currency]
+    
+    const interval = isAnnual ? 'year' : 'month'
     
     // Create or get the price in Stripe
-    // Using a deterministic price lookup key
-    const priceLookupKey = `musql_${licenseTier.toLowerCase()}_${currency.toLowerCase()}_monthly`
+    const priceLookupKey = `musql_${licenseTier.toLowerCase()}_${currency.toLowerCase()}_${interval}ly`
     
     let priceId: string
     
@@ -71,15 +91,15 @@ export async function POST(request: NextRequest) {
     } else {
       // Create product and price
       const product = await stripe.products.create({
-        name: `Musql ${licenseTier.charAt(0) + licenseTier.slice(1).toLowerCase()} Plan`,
-        metadata: { tier: licenseTier },
+        name: `Musql ${licenseTier.charAt(0) + licenseTier.slice(1).toLowerCase()} Plan (${isAnnual ? 'Annual' : 'Monthly'})`,
+        metadata: { tier: licenseTier, billingPeriod },
       })
 
       const price = await stripe.prices.create({
         product: product.id,
         unit_amount: priceAmount,
         currency: currency.toLowerCase(),
-        recurring: { interval: 'month' },
+        recurring: { interval },
         lookup_key: priceLookupKey,
       })
       priceId = price.id
@@ -116,6 +136,7 @@ export async function POST(request: NextRequest) {
         metadata: {
           organizationId,
           licenseTier,
+          billingPeriod,
         },
       },
       success_url: `${baseUrl}/subscribe/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -124,6 +145,7 @@ export async function POST(request: NextRequest) {
         organizationId,
         licenseTier,
         setupToken,
+        billingPeriod,
       },
       allow_promotion_codes: true,
       billing_address_collection: 'auto',
