@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { motion, useScroll, useTransform, useInView } from "framer-motion"
 import { useRef } from "react"
 import { 
@@ -11,6 +12,17 @@ import {
   TrendingUp, Clock, MapPin
 } from "lucide-react"
 import { ContainerScroll } from "@/components/ui/container-scroll-animation"
+
+// Musql Logo component
+const MusqlLogo = ({ size = 40, className = "" }: { size?: number, className?: string }) => (
+  <Image 
+    src="/img/musql_ikon.png" 
+    alt="Musql" 
+    width={size} 
+    height={size} 
+    className={`rounded-xl ${className}`}
+  />
+)
 
 // Animated section wrapper with reveal
 const RevealSection = ({ children, className = "", delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) => {
@@ -285,9 +297,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-white/70 backdrop-blur-xl border-b border-gray-200/50" />
         <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#D2F159] to-[#b8d94e] rounded-xl flex items-center justify-center shadow-lg shadow-[#D2F159]/30 group-hover:shadow-[#D2F159]/50 transition-shadow">
-              <span className="text-xl">💪</span>
-            </div>
+            <MusqlLogo size={40} className="shadow-lg shadow-[#D2F159]/30 group-hover:shadow-[#D2F159]/50 transition-shadow" />
             <span className="text-xl font-bold text-gray-900">Musql</span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
@@ -423,9 +433,7 @@ export default function LandingPage() {
           {/* Top bar */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#D2F159] to-[#b8d94e] rounded-lg flex items-center justify-center">
-                <span className="text-sm">💪</span>
-              </div>
+              <MusqlLogo size={32} />
               <span className="font-bold text-gray-900">Musql</span>
             </div>
             <div className="flex items-center gap-2">
@@ -583,9 +591,9 @@ export default function LandingPage() {
                     <motion.div 
                       animate={{ scale: [1, 1.05, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
-                      className="w-20 h-20 bg-gradient-to-br from-[#D2F159] to-[#b8d94e] rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-xl shadow-[#D2F159]/30"
+                      className="mx-auto mb-4 shadow-xl shadow-[#D2F159]/30 rounded-2xl"
                     >
-                      <span className="text-4xl">💪</span>
+                      <MusqlLogo size={80} className="rounded-2xl" />
                     </motion.div>
                     <p className="text-gray-900 font-bold text-lg">Musql</p>
                     <p className="text-gray-400 text-sm">Progressive Web App</p>
@@ -671,9 +679,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div>
               <Link href="/" className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#D2F159] to-[#b8d94e] rounded-lg flex items-center justify-center">
-                  <span className="text-lg">💪</span>
-                </div>
+                <MusqlLogo size={32} />
                 <span className="font-bold text-gray-900">Musql</span>
               </Link>
               <p className="text-gray-500 text-sm leading-relaxed">
