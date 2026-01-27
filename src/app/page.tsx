@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import DashboardPage from './(dashboard)/page'
+import LandingPage from './(landing)/page'
 
 export default async function HomePage() {
   console.log('[HOME] Starting...')
@@ -12,12 +13,13 @@ export default async function HomePage() {
     console.log('[HOME] Session:', JSON.stringify(session?.user || null))
   } catch (error) {
     console.error('[HOME] Auth error:', error)
-    redirect('/onboarding')
+    // Show landing page for unauthenticated users
+    return <LandingPage />
   }
 
   if (!session) {
-    console.log('[HOME] No session, redirecting to onboarding')
-    redirect('/onboarding')
+    console.log('[HOME] No session, showing landing page')
+    return <LandingPage />
   }
 
   console.log('[HOME] User role:', session.user?.role)
