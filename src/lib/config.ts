@@ -6,41 +6,41 @@
 // Supported currencies
 export type Currency = 'USD' | 'EUR' | 'HUF'
 
-// License tier pricing per currency (in smallest unit: cents/forint)
+// License tier pricing per currency (in smallest unit: cents/fillér)
 export const LICENSE_PRICES = {
   STARTER: {
-    USD: 2900,      // $29/month
-    EUR: 2700,      // €27/month  
-    HUF: 1090000,   // 10,900 Ft/month (stored as fillér)
+    USD: 2500,      // $25/month
+    EUR: 2300,      // €23/month  
+    HUF: 990000,    // 9,900 Ft/month (stored as fillér)
   },
   PROFESSIONAL: {
-    USD: 7900,      // $79/month
-    EUR: 7300,      // €73/month
-    HUF: 2990000,   // 29,900 Ft/month
+    USD: 7500,      // $75/month
+    EUR: 6900,      // €69/month
+    HUF: 2999000,   // 29,990 Ft/month
   },
   ENTERPRISE: {
-    USD: 19900,     // $199/month
-    EUR: 18500,     // €185/month
-    HUF: 7490000,   // 74,900 Ft/month
+    USD: 18900,     // $189/month
+    EUR: 17500,     // €175/month
+    HUF: 7499000,   // 74,990 Ft/month
   },
 } as const
 
 // Display prices (human readable)
 export const LICENSE_DISPLAY_PRICES = {
   STARTER: {
-    USD: '$29',
-    EUR: '€27',
-    HUF: '10 900 Ft',
+    USD: '$25',
+    EUR: '€23',
+    HUF: '9 900 Ft',
   },
   PROFESSIONAL: {
-    USD: '$79',
-    EUR: '€73',
-    HUF: '29 900 Ft',
+    USD: '$75',
+    EUR: '€69',
+    HUF: '29 990 Ft',
   },
   ENTERPRISE: {
-    USD: '$199',
-    EUR: '€185',
-    HUF: '74 900 Ft',
+    USD: '$189',
+    EUR: '€175',
+    HUF: '74 990 Ft',
   },
 } as const
 
@@ -57,51 +57,54 @@ export const TRIAL_PERIOD_DAYS = 15
 // License tier limits
 export const LICENSE_LIMITS = {
   STARTER: {
-    maxStudents: 25,
+    maxStudents: 5,
     maxSessions: 50,
     maxTrainers: 2,
+    maxLocations: 1,
   },
   PROFESSIONAL: {
-    maxStudents: 100,
+    maxStudents: 75,
     maxSessions: 200,
     maxTrainers: 10,
+    maxLocations: 3,
   },
   ENTERPRISE: {
     maxStudents: -1, // unlimited
     maxSessions: -1, // unlimited
     maxTrainers: -1, // unlimited
+    maxLocations: -1, // unlimited
   },
 } as const
 
-// License tier display names
+// License tier display names (Hungarian)
 export const LICENSE_TIER_NAMES = {
-  STARTER: 'Starter',
-  PROFESSIONAL: 'Professional', 
-  ENTERPRISE: 'Enterprise',
+  STARTER: 'Alap',
+  PROFESSIONAL: 'Prémium', 
+  ENTERPRISE: 'Üzleti',
 } as const
 
-// License tier features for display
+// License tier features for display (Hungarian)
 export const LICENSE_FEATURES = {
   STARTER: [
-    'Max 25 tag',
+    'Max 5 tag',
     'Max 50 óra/hó',
     'Max 2 edző',
     'Email támogatás',
   ],
   PROFESSIONAL: [
-    'Max 100 tag',
+    'Max 75 tag',
     'Max 200 óra/hó',
     'Max 10 edző',
-    'Prioritás támogatás',
-    'Egyéni márka',
+    'Online fizetés',
+    'Értesítések & üzenetküldés',
+    'Riportok',
   ],
   ENTERPRISE: [
     'Korlátlan tag',
-    'Korlátlan óra',
-    'Korlátlan edző',
-    'Dedikált támogatás',
+    'Korlátlan óraszám',
+    'Korlátlan edző & helyszín',
+    'Kiemelt ügyfélszolgálat',
     'API hozzáférés',
-    'Egyéni funkciók',
   ],
 } as const
 
