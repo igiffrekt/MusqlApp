@@ -10,11 +10,11 @@ type LicenseTier = 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE'
 type Currency = 'USD' | 'EUR' | 'HUF'
 type BillingPeriod = 'monthly' | 'annual'
 
-// Monthly prices
+// Monthly prices - updated
 const MONTHLY_PRICES: Record<LicenseTier, Record<Currency, number>> = {
-  STARTER: { USD: 29, EUR: 27, HUF: 10900 },
-  PROFESSIONAL: { USD: 79, EUR: 73, HUF: 29900 },
-  ENTERPRISE: { USD: 199, EUR: 185, HUF: 74900 },
+  STARTER: { USD: 25, EUR: 23, HUF: 9900 },
+  PROFESSIONAL: { USD: 75, EUR: 69, HUF: 29990 },
+  ENTERPRISE: { USD: 189, EUR: 175, HUF: 74990 },
 }
 
 // Annual = 10 months (2 months free)
@@ -29,10 +29,28 @@ const formatPrice = (amount: number, currency: Currency) => {
   return `$${amount}`
 }
 
+// Updated features
 const FEATURES: Record<LicenseTier, string[]> = {
-  STARTER: ['Max 25 tag', 'Max 50 óra/hó', 'Max 2 edző', 'Email támogatás'],
-  PROFESSIONAL: ['Max 100 tag', 'Max 200 óra/hó', 'Max 10 edző', 'Prioritás támogatás', 'Egyéni márka'],
-  ENTERPRISE: ['Korlátlan tag', 'Korlátlan óra', 'Korlátlan edző', 'Dedikált támogatás', 'API hozzáférés'],
+  STARTER: [
+    'Max 5 tag',
+    'Max 50 óra/hó',
+    'Max 2 edző',
+  ],
+  PROFESSIONAL: [
+    'Max 75 tag',
+    'Max 200 óra/hó',
+    'Max 10 edző',
+    'Online fizetés',
+    'Értesítések & üzenetküldés',
+    'Riportok',
+  ],
+  ENTERPRISE: [
+    'Korlátlan tag',
+    'Korlátlan óraszám',
+    'Korlátlan edző & helyszín',
+    'Kiemelt ügyfélszolgálat',
+    '+ Minden Prémium funkció',
+  ],
 }
 
 const TIER_ICONS: Record<LicenseTier, typeof User> = {
@@ -134,23 +152,18 @@ export default function SubscribePage() {
       <div className="min-h-screen bg-[#171725] mx-[5px] my-[5px] rounded-2xl pb-8 overflow-y-auto">
         {/* Header */}
         <div className="px-6 pt-8 pb-2 text-center">
-          <h1 className="text-white text-2xl font-bold mb-4">Válassz csomagot</h1>
+          <h1 className="text-white text-2xl font-bold mb-3">Válassz csomagot</h1>
           
-          {/* Trial highlight - more prominent */}
-          <div className="bg-gradient-to-r from-[#D2F159]/20 via-[#D2F159]/10 to-[#D2F159]/20 border border-[#D2F159]/40 rounded-2xl p-4 mb-4">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <Gift className="w-5 h-5 text-[#D2F159]" />
-              <span className="text-[#D2F159] font-bold text-lg">15 NAP INGYEN</span>
-              <Gift className="w-5 h-5 text-[#D2F159]" />
-            </div>
-            <p className="text-white/70 text-sm">
-              Próbáld ki kötelezettség nélkül • Bármikor lemondható
-            </p>
+          {/* Trial highlight - smaller */}
+          <div className="bg-[#D2F159]/10 border border-[#D2F159]/30 rounded-xl px-4 py-2.5 mb-4 inline-flex items-center gap-2">
+            <Gift className="w-4 h-4 text-[#D2F159]" />
+            <span className="text-[#D2F159] font-semibold text-sm">15 NAP INGYEN</span>
+            <span className="text-white/50 text-xs">• Bármikor lemondható</span>
           </div>
         </div>
 
         {/* Billing Toggle */}
-        <div className="px-6 py-4">
+        <div className="px-6 py-3">
           <div className="relative">
             {/* 2 months free badge - positioned above Éves button */}
             <div className="absolute -top-1 right-0 w-1/2 flex justify-center z-10">
@@ -168,23 +181,29 @@ export default function SubscribePage() {
             <div className="bg-[#252a32] rounded-2xl p-1.5 flex">
               <button
                 onClick={() => setBillingPeriod('monthly')}
-                className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
+                className={`flex-1 py-2.5 px-2 rounded-xl text-center transition-all ${
                   billingPeriod === 'monthly'
                     ? 'bg-[#171725] text-white'
                     : 'text-white/40'
                 }`}
               >
-                Havi
+                <div className="text-sm font-medium">Havi</div>
+                <div className={`text-[10px] mt-0.5 ${billingPeriod === 'monthly' ? 'text-white/50' : 'text-white/30'}`}>
+                  Automatikus havi előfizetés
+                </div>
               </button>
               <button
                 onClick={() => setBillingPeriod('annual')}
-                className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
+                className={`flex-1 py-2.5 px-2 rounded-xl text-center transition-all ${
                   billingPeriod === 'annual'
                     ? 'bg-[#D2F159] text-[#171725]'
                     : 'text-white/40'
                 }`}
               >
-                Éves
+                <div className="text-sm font-medium">Éves</div>
+                <div className={`text-[10px] mt-0.5 ${billingPeriod === 'annual' ? 'text-[#171725]/60' : 'text-white/30'}`}>
+                  Egy összegben, előre fizetendő
+                </div>
               </button>
             </div>
           </div>
@@ -205,7 +224,7 @@ export default function SubscribePage() {
         </div>
 
         {/* Currency selector */}
-        <div className="px-6 mb-4">
+        <div className="px-6 mb-3">
           <div className="flex justify-center gap-1">
             {(['HUF', 'EUR', 'USD'] as Currency[]).map((c) => (
               <button
@@ -276,9 +295,9 @@ export default function SubscribePage() {
                       </p>
                     )}
                     <ul className="mt-2 space-y-1">
-                      {FEATURES[tier].slice(0, 3).map((feature, i) => (
+                      {FEATURES[tier].map((feature, i) => (
                         <li key={i} className="text-white/60 text-sm flex items-center gap-2">
-                          <Check className="w-4 h-4 text-[#D2F159]" />
+                          <Check className="w-4 h-4 text-[#D2F159] flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
@@ -327,14 +346,18 @@ export default function SubscribePage() {
           </p>
         </div>
 
-        {/* Payment methods - using image files from public folder */}
+        {/* Payment methods */}
         <div className="px-6 pt-6">
           <p className="text-white/30 text-xs text-center mb-3">Elfogadott fizetési módok</p>
           <div className="flex justify-center items-center gap-3">
             <img src="/img/payments/visa.svg" alt="Visa" className="h-8" />
             <img src="/img/payments/mastercard.svg" alt="Mastercard" className="h-8" />
-            <img src="/img/payments/applepay.svg" alt="Apple Pay" className="h-8" />
-            <img src="/img/payments/googlepay.svg" alt="Google Pay" className="h-8" />
+            <div className="bg-white rounded-lg px-2 py-1">
+              <img src="/img/payments/applepay.svg" alt="Apple Pay" className="h-6" />
+            </div>
+            <div className="bg-white rounded-lg px-2 py-1">
+              <img src="/img/payments/googlepay.svg" alt="Google Pay" className="h-6" />
+            </div>
           </div>
         </div>
 

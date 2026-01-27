@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth-utils'
-import { TRIAL_PERIOD_DAYS, Currency } from '@/lib/config'
+import { TRIAL_PERIOD_DAYS } from '@/lib/config'
 import type { LicenseTier } from '@prisma/client'
 import crypto from 'crypto'
 
-// Monthly prices in smallest currency unit (cents/forint)
+// Monthly prices in smallest currency unit (cents/fillér)
 const MONTHLY_PRICES: Record<string, Record<string, number>> = {
-  STARTER: { USD: 2900, EUR: 2700, HUF: 1090000 },
-  PROFESSIONAL: { USD: 7900, EUR: 7300, HUF: 2990000 },
-  ENTERPRISE: { USD: 19900, EUR: 18500, HUF: 7490000 },
+  STARTER: { USD: 2500, EUR: 2300, HUF: 990000 },      // $25, €23, 9,900 Ft
+  PROFESSIONAL: { USD: 7500, EUR: 6900, HUF: 2999000 }, // $75, €69, 29,990 Ft
+  ENTERPRISE: { USD: 18900, EUR: 17500, HUF: 7499000 }, // $189, €175, 74,990 Ft
 }
 
 // Annual = 10 months (2 months free)
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const interval = isAnnual ? 'year' : 'month'
     
     // Create or get the price in Stripe
-    const priceLookupKey = `musql_${licenseTier.toLowerCase()}_${currency.toLowerCase()}_${interval}ly`
+    const priceLookupKey = `musql_${licenseTier.toLowerCase()}_${currency.toLowerCase()}_${interval}ly_v2`
     
     let priceId: string
     

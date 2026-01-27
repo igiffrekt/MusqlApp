@@ -16,9 +16,9 @@ const TIER_ICONS = {
 }
 
 const MONTHLY_PRICES = {
-  STARTER: '10 900 Ft',
-  PROFESSIONAL: '29 900 Ft',
-  ENTERPRISE: '74 900 Ft',
+  STARTER: '9 900 Ft',
+  PROFESSIONAL: '29 990 Ft',
+  ENTERPRISE: '74 990 Ft',
 }
 
 type FeatureValue = boolean | string | number
@@ -33,45 +33,34 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   // Kapacitás
-  { name: 'Tagok száma', category: 'Kapacitás', starter: 'Max 25', professional: 'Max 100', enterprise: 'Korlátlan' },
+  { name: 'Tagok száma', category: 'Kapacitás', starter: 'Max 5', professional: 'Max 75', enterprise: 'Korlátlan' },
   { name: 'Edzők száma', category: 'Kapacitás', starter: 'Max 2', professional: 'Max 10', enterprise: 'Korlátlan' },
   { name: 'Órák száma / hónap', category: 'Kapacitás', starter: 'Max 50', professional: 'Max 200', enterprise: 'Korlátlan' },
-  { name: 'Helyszínek száma', category: 'Kapacitás', starter: '1', professional: '5', enterprise: 'Korlátlan' },
+  { name: 'Helyszínek száma', category: 'Kapacitás', starter: '1', professional: '3', enterprise: 'Korlátlan' },
   
-  // Funkciók
+  // Alapfunkciók
   { name: 'Órarend kezelés', category: 'Alapfunkciók', starter: true, professional: true, enterprise: true },
   { name: 'Jelenléti ív', category: 'Alapfunkciók', starter: true, professional: true, enterprise: true },
   { name: 'Tag nyilvántartás', category: 'Alapfunkciók', starter: true, professional: true, enterprise: true },
   { name: 'Fizetés követés', category: 'Alapfunkciók', starter: true, professional: true, enterprise: true },
-  { name: 'Email értesítések', category: 'Alapfunkciók', starter: true, professional: true, enterprise: true },
-  { name: 'Push értesítések', category: 'Alapfunkciók', starter: true, professional: true, enterprise: true },
+  { name: 'Email támogatás', category: 'Alapfunkciók', starter: true, professional: true, enterprise: true },
   
-  // Haladó funkciók
-  { name: 'Csoportok kezelése', category: 'Haladó funkciók', starter: false, professional: true, enterprise: true },
-  { name: 'Automatikus emlékeztetők', category: 'Haladó funkciók', starter: false, professional: true, enterprise: true },
-  { name: 'Részletes statisztikák', category: 'Haladó funkciók', starter: false, professional: true, enterprise: true },
-  { name: 'Egyéni jogosultságok', category: 'Haladó funkciók', starter: false, professional: true, enterprise: true },
-  { name: 'Exportálás (CSV, PDF)', category: 'Haladó funkciók', starter: false, professional: true, enterprise: true },
+  // Prémium funkciók
+  { name: 'Online fizetés (Stripe)', category: 'Prémium funkciók', starter: false, professional: true, enterprise: true },
+  { name: 'Push értesítések', category: 'Prémium funkciók', starter: false, professional: true, enterprise: true },
+  { name: 'Appon belüli üzenetküldés', category: 'Prémium funkciók', starter: false, professional: true, enterprise: true },
+  { name: 'Riportok és statisztikák', category: 'Prémium funkciók', starter: false, professional: true, enterprise: true },
+  { name: 'Csoportok kezelése', category: 'Prémium funkciók', starter: false, professional: true, enterprise: true },
+  { name: 'Automatikus emlékeztetők', category: 'Prémium funkciók', starter: false, professional: true, enterprise: true },
+  { name: 'Exportálás (CSV, PDF)', category: 'Prémium funkciók', starter: false, professional: true, enterprise: true },
   
-  // Személyre szabás
-  { name: 'Saját logó', category: 'Személyre szabás', starter: false, professional: true, enterprise: true },
-  { name: 'Egyéni színek', category: 'Személyre szabás', starter: false, professional: true, enterprise: true },
-  { name: 'Saját domain', category: 'Személyre szabás', starter: false, professional: false, enterprise: true },
-  { name: 'Fehér címkés megoldás', category: 'Személyre szabás', starter: false, professional: false, enterprise: true },
-  
-  // Integráció
-  { name: 'Online fizetés (Stripe)', category: 'Integráció', starter: false, professional: true, enterprise: true },
-  { name: 'Google Calendar szinkron', category: 'Integráció', starter: false, professional: true, enterprise: true },
-  { name: 'API hozzáférés', category: 'Integráció', starter: false, professional: false, enterprise: true },
-  { name: 'Webhook-ok', category: 'Integráció', starter: false, professional: false, enterprise: true },
-  { name: 'Egyéni integrációk', category: 'Integráció', starter: false, professional: false, enterprise: true },
-  
-  // Támogatás
-  { name: 'Email támogatás', category: 'Támogatás', starter: true, professional: true, enterprise: true },
-  { name: 'Prioritás támogatás', category: 'Támogatás', starter: false, professional: true, enterprise: true },
-  { name: 'Telefonos támogatás', category: 'Támogatás', starter: false, professional: false, enterprise: true },
-  { name: 'Dedikált account manager', category: 'Támogatás', starter: false, professional: false, enterprise: true },
-  { name: 'Bevezetési segítség', category: 'Támogatás', starter: false, professional: false, enterprise: true },
+  // Üzleti funkciók
+  { name: 'Kiemelt ügyfélszolgálat', category: 'Üzleti funkciók', starter: false, professional: false, enterprise: true },
+  { name: 'Prioritás support', category: 'Üzleti funkciók', starter: false, professional: false, enterprise: true },
+  { name: 'Egyéni jogosultságok', category: 'Üzleti funkciók', starter: false, professional: false, enterprise: true },
+  { name: 'API hozzáférés', category: 'Üzleti funkciók', starter: false, professional: false, enterprise: true },
+  { name: 'Saját domain', category: 'Üzleti funkciók', starter: false, professional: false, enterprise: true },
+  { name: 'Fehér címkés megoldás', category: 'Üzleti funkciók', starter: false, professional: false, enterprise: true },
 ]
 
 const categories = [...new Set(FEATURES.map(f => f.category))]
