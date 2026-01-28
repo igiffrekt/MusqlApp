@@ -2,14 +2,14 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { motion, useScroll, useTransform, useInView } from "framer-motion"
-import { useRef } from "react"
+import { motion, useInView } from "framer-motion"
+import { useRef, useState } from "react"
 import { 
   Users, Calendar, CreditCard, Bell, 
-  BarChart3, Shield, Smartphone,
-  CheckCircle2, ArrowRight, Star, Zap,
-  Play, ChevronRight, Sparkles,
-  TrendingUp, Clock, MapPin
+  BarChart3, Smartphone,
+  CheckCircle2, ArrowRight, 
+  ChevronRight, User, Crown, Building2,
+  MessageSquare, FileText, Clock, MapPin
 } from "lucide-react"
 import { ContainerScroll } from "@/components/ui/container-scroll-animation"
 
@@ -27,24 +27,6 @@ const MusqlLogo = ({ size = 40, className = "" }: { size?: number, className?: s
 // Animated section wrapper with reveal
 const RevealSection = ({ children, className = "", delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) => {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
-  
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-      transition={{ duration: 0.7, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  )
-}
-
-// Feature card with hover effects
-const FeatureCard = ({ icon: Icon, title, description, index }: { icon: any, title: string, description: string, index: number }) => {
-  const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-50px" })
   
   return (
@@ -52,77 +34,16 @@ const FeatureCard = ({ icon: Icon, title, description, index }: { icon: any, tit
       ref={ref}
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="group relative p-8 rounded-3xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-xl hover:shadow-gray-100/50 transition-all duration-500"
+      transition={{ duration: 0.6, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
+      className={className}
     >
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D2F159] to-[#b8d94e] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[#D2F159]/20">
-        <Icon className="w-7 h-7 text-gray-900" />
-      </div>
-      <h3 className="text-xl font-semibold text-gray-900 mb-3">{title}</h3>
-      <p className="text-gray-500 leading-relaxed">{description}</p>
+      {children}
     </motion.div>
   )
 }
 
-// Pricing card
-const PricingCard = ({ name, price, period, description, features, cta, popular, index }: any) => {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-50px" })
-  
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 30, scale: 0.95 }}
-      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 30, scale: 0.95 }}
-      transition={{ duration: 0.5, delay: index * 0.15 }}
-      className={`relative p-8 rounded-3xl transition-all duration-300 hover:scale-[1.02] ${
-        popular 
-          ? 'bg-gray-900 text-white shadow-2xl shadow-gray-900/20' 
-          : 'bg-white border border-gray-200 hover:shadow-xl hover:shadow-gray-100/50'
-      }`}
-    >
-      {popular && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-          <span className="px-4 py-1.5 bg-[#D2F159] text-gray-900 text-xs font-bold rounded-full flex items-center gap-1.5 shadow-lg">
-            <Sparkles className="w-3 h-3" />
-            Legnépszerűbb
-          </span>
-        </div>
-      )}
-      <div className="mb-6">
-        <h3 className={`text-2xl font-bold mb-1 ${popular ? 'text-white' : 'text-gray-900'}`}>{name}</h3>
-        <p className={`text-sm ${popular ? 'text-gray-400' : 'text-gray-500'}`}>{description}</p>
-      </div>
-      <div className="mb-8">
-        <span className={`text-5xl font-bold ${popular ? 'text-white' : 'text-gray-900'}`}>{price}</span>
-        <span className={`ml-2 ${popular ? 'text-gray-400' : 'text-gray-500'}`}>{period}</span>
-      </div>
-      <ul className="space-y-4 mb-8">
-        {features.map((feature: string, j: number) => (
-          <li key={j} className="flex items-center gap-3 text-sm">
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${popular ? 'bg-[#D2F159]' : 'bg-[#D2F159]/20'}`}>
-              <CheckCircle2 className={`w-3 h-3 ${popular ? 'text-gray-900' : 'text-gray-700'}`} />
-            </div>
-            <span className={popular ? 'text-gray-300' : 'text-gray-600'}>{feature}</span>
-          </li>
-        ))}
-      </ul>
-      <Link
-        href="/auth/signup"
-        className={`block w-full py-4 rounded-xl text-center font-semibold transition-all duration-300 ${
-          popular
-            ? 'bg-[#D2F159] text-gray-900 hover:bg-[#e5ff7a] hover:shadow-lg hover:shadow-[#D2F159]/30'
-            : 'bg-gray-900 text-white hover:bg-gray-800'
-        }`}
-      >
-        {cta}
-      </Link>
-    </motion.div>
-  )
-}
-
-// Testimonial card
-const TestimonialCard = ({ name, role, text, rating, index }: any) => {
+// Feature card
+const FeatureCard = ({ icon: Icon, title, description, index }: { icon: any, title: string, description: string, index: number }) => {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-50px" })
   
@@ -131,223 +52,246 @@ const TestimonialCard = ({ name, role, text, rating, index }: any) => {
       ref={ref}
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="p-8 rounded-3xl bg-white border border-gray-100 hover:shadow-xl hover:shadow-gray-100/50 transition-all duration-300"
+      transition={{ duration: 0.4, delay: index * 0.1 }}
+      className="group p-6 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all duration-300"
     >
-      <div className="flex gap-1 mb-4">
-        {[...Array(rating)].map((_, j) => (
-          <Star key={j} className="w-5 h-5 fill-[#D2F159] text-[#D2F159]" />
-        ))}
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D2F159] to-[#b8d94e] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+        <Icon className="w-6 h-6 text-gray-900" />
       </div>
-      <p className="text-gray-700 mb-6 leading-relaxed text-lg">&ldquo;{text}&rdquo;</p>
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#D2F159] to-[#b8d94e] flex items-center justify-center shadow-md">
-          <span className="text-sm font-bold text-gray-900">{name.charAt(0)}</span>
-        </div>
-        <div>
-          <p className="font-semibold text-gray-900">{name}</p>
-          <p className="text-sm text-gray-500">{role}</p>
-        </div>
-      </div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+      <p className="text-gray-500 text-sm leading-relaxed">{description}</p>
     </motion.div>
   )
 }
 
-// Stats counter
-const StatItem = ({ value, label, index }: { value: string, label: string, index: number }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-    className="text-center"
-  >
-    <div className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-      {value}
-    </div>
-    <div className="text-gray-500 text-sm">{label}</div>
-  </motion.div>
-)
+// Pricing data
+const MONTHLY_PRICES = {
+  STARTER: 9900,
+  PROFESSIONAL: 29990,
+  ENTERPRISE: 74990,
+}
 
+const getAnnualPrice = (tier: keyof typeof MONTHLY_PRICES) => MONTHLY_PRICES[tier] * 10
+
+const TIER_FEATURES = {
+  STARTER: [
+    "Max 5 tag",
+    "Max 2 edző", 
+    "Max 50 óra/hó",
+    "1 helyszín",
+    "Órarend kezelés",
+    "Jelenléti ív",
+    "Email értesítések",
+  ],
+  PROFESSIONAL: [
+    "Max 75 tag",
+    "Max 10 edző",
+    "Max 200 óra/hó", 
+    "3 helyszín",
+    "Online kártyás fizetés",
+    "Push értesítések",
+    "Riportok és statisztikák",
+    "Csoportok kezelése",
+  ],
+  ENTERPRISE: [
+    "Korlátlan tag",
+    "Korlátlan edző",
+    "Korlátlan óra",
+    "Korlátlan helyszín",
+    "Prioritásos támogatás",
+    "API hozzáférés",
+    "Egyedi integráció",
+  ],
+}
+
+// Pricing card component
+const PricingCard = ({ 
+  tier, 
+  name, 
+  description, 
+  isPopular, 
+  billingPeriod,
+  index 
+}: { 
+  tier: keyof typeof MONTHLY_PRICES
+  name: string
+  description: string
+  isPopular: boolean
+  billingPeriod: "monthly" | "annual"
+  index: number
+}) => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-50px" })
+  
+  const monthlyPrice = MONTHLY_PRICES[tier]
+  const annualTotal = getAnnualPrice(tier)
+  const effectiveMonthly = billingPeriod === "annual" ? Math.round(annualTotal / 12) : monthlyPrice
+  
+  const Icon = tier === "STARTER" ? User : tier === "PROFESSIONAL" ? Crown : Building2
+  
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+      transition={{ duration: 0.4, delay: index * 0.1 }}
+      className={`relative p-6 rounded-2xl transition-all duration-300 ${
+        isPopular 
+          ? 'bg-gray-900 text-white shadow-xl' 
+          : 'bg-white border border-gray-200'
+      }`}
+    >
+      {isPopular && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span className="px-3 py-1 bg-[#D2F159] text-gray-900 text-xs font-bold rounded-full flex items-center gap-1">
+            <Crown className="w-3 h-3" /> Legnépszerűbb
+          </span>
+        </div>
+      )}
+      
+      <div className="flex items-center gap-3 mb-4">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+          isPopular ? 'bg-[#D2F159]' : 'bg-gray-100'
+        }`}>
+          <Icon className={`w-5 h-5 ${isPopular ? 'text-gray-900' : 'text-gray-600'}`} />
+        </div>
+        <div>
+          <h3 className={`font-bold ${isPopular ? 'text-white' : 'text-gray-900'}`}>{name}</h3>
+          <p className={`text-xs ${isPopular ? 'text-gray-400' : 'text-gray-500'}`}>{description}</p>
+        </div>
+      </div>
+      
+      <div className="mb-4">
+        <span className={`text-3xl font-bold ${isPopular ? 'text-white' : 'text-gray-900'}`}>
+          {effectiveMonthly.toLocaleString('hu-HU')} Ft
+        </span>
+        <span className={`text-sm ${isPopular ? 'text-gray-400' : 'text-gray-500'}`}>/hó</span>
+        {billingPeriod === "annual" && (
+          <div className={`text-xs mt-1 ${isPopular ? 'text-gray-400' : 'text-gray-500'}`}>
+            <span className="line-through">{monthlyPrice.toLocaleString('hu-HU')} Ft/hó</span>
+            <span className="text-[#D2F159] ml-2">2 hónap ingyen</span>
+          </div>
+        )}
+      </div>
+      
+      <ul className="space-y-2 mb-6">
+        {TIER_FEATURES[tier].map((feature, i) => (
+          <li key={i} className="flex items-center gap-2 text-sm">
+            <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${isPopular ? 'text-[#D2F159]' : 'text-[#D2F159]'}`} />
+            <span className={isPopular ? 'text-gray-300' : 'text-gray-600'}>{feature}</span>
+          </li>
+        ))}
+      </ul>
+      
+      <Link
+        href="/auth/signup"
+        className={`block w-full py-3 rounded-xl text-center font-semibold transition-all ${
+          isPopular
+            ? 'bg-[#D2F159] text-gray-900 hover:bg-[#e5ff7a]'
+            : 'bg-gray-900 text-white hover:bg-gray-800'
+        }`}
+      >
+        Próbaidő indítása
+      </Link>
+    </motion.div>
+  )
+}
+
+// Features list
 const features = [
   {
-    icon: Users,
-    title: "Tagkezelés",
-    description: "Ügyfelek, bérletek és csoportok kezelése egyszerűen. Minden adat egy helyen, azonnal elérhető."
+    icon: Calendar,
+    title: "Órarend kezelés",
+    description: "Hozz létre ismétlődő vagy egyszeri órákat, kezeld a helyettesítéseket és a lemondásokat."
   },
   {
-    icon: Calendar,
-    title: "Órarend & Foglalás",
-    description: "Egyszerű órarend kezelés. Tagok online foglalhatnak és valós időben látják az órákat."
+    icon: Users,
+    title: "Tagnyilvántartás", 
+    description: "Tárold a tagok adatait, bérleteit, fizetési előzményeit egy helyen."
+  },
+  {
+    icon: CheckCircle2,
+    title: "Jelenléti ív",
+    description: "Vezetsd a jelenlétet QR kóddal vagy kézi bejelentkezéssel, kövesd a részvételi arányokat."
   },
   {
     icon: CreditCard,
-    title: "Fizetések",
-    description: "Bérletek, napijegyek nyomon követése. Online és készpénzes fizetés támogatás."
+    title: "Fizetés kezelés",
+    description: "Kövesd a beérkező díjakat, kezeld a lejárt bérleteket, fogadj online fizetést."
   },
   {
     icon: Bell,
     title: "Értesítések",
-    description: "Automatikus push és email értesítések órakezdésről, fizetési határidőkről."
+    description: "Küldj push értesítéseket és emaileket az órákról, fizetési emlékeztetőkről."
   },
   {
     icon: BarChart3,
-    title: "Statisztikák",
-    description: "Bevételek, látogatottság, népszerű órák - minden egy helyen, átláthatóan."
-  },
-  {
-    icon: Shield,
-    title: "GDPR megfelelő",
-    description: "Adatvédelem és biztonság elsőre. Magyar szabályozásnak teljesen megfelelő."
-  },
-]
-
-const pricingPlans = [
-  {
-    name: "Alap",
-    price: "9 900",
-    period: "Ft/hó",
-    description: "Kisebb stúdióknak, személyi edzőknek",
-    features: [
-      "Max 50 tag",
-      "Max 50 óra/hó",
-      "2 edző",
-      "1 helyszín",
-      "Email értesítések",
-      "Alapstatisztikák",
-    ],
-    cta: "Kezdés ingyen",
-    popular: false,
-  },
-  {
-    name: "Prémium",
-    price: "29 990",
-    period: "Ft/hó",
-    description: "Növekvő stúdióknak és kluboknak",
-    features: [
-      "Max 75 tag",
-      "Max 200 óra/hó", 
-      "10 edző",
-      "3 helyszín",
-      "Push + Email értesítések",
-      "Online fizetés",
-      "Haladó statisztikák",
-    ],
-    cta: "Kezdés ingyen",
-    popular: true,
-  },
-  {
-    name: "Üzleti",
-    price: "74 990",
-    period: "Ft/hó",
-    description: "Nagy létszámú szervezeteknek",
-    features: [
-      "Korlátlan tag",
-      "Korlátlan óra",
-      "Korlátlan edző",
-      "Korlátlan helyszín",
-      "Minden funkció",
-      "Prioritásos támogatás",
-      "Egyedi integrációk",
-    ],
-    cta: "Kapcsolatfelvétel",
-    popular: false,
-  },
-]
-
-const testimonials = [
-  {
-    name: "Kovács Anna",
-    role: "Jóga oktató",
-    text: "Végre nem kell excelben vezetnem a tagokat. A Musql mindent megold, és a tagjaim is imádják az appot!",
-    rating: 5,
-  },
-  {
-    name: "Nagy Péter",
-    role: "BJJ edző, Budapest",
-    text: "A foglalási rendszer életmentő. Nincs több telefonálgatás, a tagok appból foglalnak 2 kattintással.",
-    rating: 5,
-  },
-  {
-    name: "Szabó Márk",
-    role: "CrossFit box tulajdonos",
-    text: "Átlátom a bevételeket, a tagok fizetnek időben, és minden adat egy helyen van. Ajánlom mindenkinek!",
-    rating: 5,
+    title: "Riportok",
+    description: "Tekintsd át a bevételeket, látogatottságot, népszerű órákat átlátható grafikonokon."
   },
 ]
 
 export default function LandingPage() {
-  const heroRef = useRef(null)
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"]
-  })
-  
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 150])
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("annual")
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-gray-900 overflow-hidden">
+    <div className="min-h-screen bg-[#FAFAFA] text-gray-900">
       {/* Background decoration */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-[#D2F159]/20 via-[#D2F159]/5 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-gradient-to-t from-blue-100/30 to-transparent rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-[#D2F159]/15 to-transparent rounded-full blur-3xl" />
       </div>
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50">
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-xl border-b border-gray-200/50" />
-        <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <MusqlLogo size={40} className="shadow-lg shadow-[#D2F159]/30 group-hover:shadow-[#D2F159]/50 transition-shadow" />
-            <span className="text-xl font-bold text-gray-900">Musql</span>
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-xl border-b border-gray-200/50" />
+        <div className="relative max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <MusqlLogo size={36} />
+            <span className="text-lg font-bold text-gray-900">Musql</span>
           </Link>
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#funkciok" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">Funkciók</a>
-            <a href="#arak" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">Árak</a>
-            <a href="#velemenyek" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">Vélemények</a>
+          <div className="hidden md:flex items-center gap-6">
+            <a href="#funkciok" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Funkciók</a>
+            <a href="#arak" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Árak</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/auth/signin" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium px-4 py-2">
+            <Link href="/auth/signin" className="text-gray-600 hover:text-gray-900 text-sm px-3 py-2">
               Belépés
             </Link>
             <Link 
               href="/auth/signup"
-              className="px-5 py-2.5 bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 transition-all text-sm shadow-lg shadow-gray-900/10"
+              className="px-4 py-2 bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 text-sm"
             >
-              Regisztráció
+              Ingyenes próba
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-20">
-        <motion.div 
-          style={{ y: heroY }}
-          className="max-w-5xl mx-auto px-6 text-center"
-        >
+      <section className="pt-28 pb-8 px-6">
+        <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 shadow-sm text-sm mb-8"
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gray-200 shadow-sm text-sm mb-6"
           >
-            <div className="w-2 h-2 rounded-full bg-[#D2F159] animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-[#D2F159]" />
             <span className="text-gray-600">15 napos ingyenes próbaidő</span>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
           </motion.div>
           
           <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-[0.95] tracking-tight"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight"
           >
-            <span className="text-gray-900">Edzéstermed</span>
+            Edzéstermed kezelése
             <br />
-            <span className="relative">
-              <span className="relative z-10">egyszerűen</span>
-              <svg className="absolute -bottom-2 left-0 w-full h-4 z-0" viewBox="0 0 300 12" preserveAspectRatio="none">
-                <path d="M0,8 Q150,0 300,8" stroke="#D2F159" strokeWidth="8" fill="none" strokeLinecap="round"/>
+            <span className="relative inline-block">
+              egyszerűen
+              <svg className="absolute -bottom-1 left-0 w-full h-3" viewBox="0 0 200 8" preserveAspectRatio="none">
+                <path d="M0,6 Q100,0 200,6" stroke="#D2F159" strokeWidth="5" fill="none" strokeLinecap="round"/>
               </svg>
             </span>
           </motion.h1>
@@ -355,193 +299,116 @@ export default function LandingPage() {
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-lg text-gray-500 max-w-xl mx-auto mb-8"
           >
-            Tagkezelés, órarend, fizetések, értesítések — minden egy helyen.
-            <span className="text-gray-700"> Jógastúdióknak, harcművészeti egyesületeknek, személyi edzőknek.</span>
+            Órarend, jelenléti ív, bérletek és fizetések — minden egy appban.
+            Jógastúdióknak, edzőtermeknek, harcművészeti kluboknak.
           </motion.p>
 
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-3 justify-center"
           >
             <Link 
               href="/auth/signup"
-              className="group px-8 py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-all text-lg shadow-xl shadow-gray-900/20 flex items-center gap-2"
+              className="group px-6 py-3 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
             >
-              Ingyenes próba
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              Kipróbálom ingyen
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <a 
               href="#funkciok"
-              className="px-8 py-4 text-gray-600 font-medium hover:text-gray-900 transition-colors flex items-center gap-2"
+              className="px-6 py-3 text-gray-600 font-medium hover:text-gray-900 transition-colors"
             >
-              <Play className="w-5 h-5" />
               Funkciók megtekintése
             </a>
           </motion.div>
-
-          {/* Stats */}
-          <div className="mt-24 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
-            <StatItem value="500+" label="aktív felhasználó" index={0} />
-            <StatItem value="15k+" label="kezelt óra/hó" index={1} />
-            <StatItem value="99.9%" label="uptime" index={2} />
-          </div>
-        </motion.div>
-
-        {/* Scroll indicator */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-6 h-10 rounded-full border-2 border-gray-300 flex items-start justify-center p-2"
-          >
-            <motion.div className="w-1 h-2 rounded-full bg-gray-400" />
-          </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Product Preview with Scroll Animation */}
       <ContainerScroll
         titleComponent={
-          <div className="mb-8">
-            <span className="text-[#9EBB35] text-sm font-semibold tracking-wide uppercase mb-4 block">
-              Ismerd meg a platformot
-            </span>
-            <h2 className="text-4xl md:text-6xl font-bold text-gray-900">
-              Minden egy helyen,{" "}
-              <span className="relative inline-block">
-                átláthatóan
-                <svg className="absolute -bottom-1 left-0 w-full h-3" viewBox="0 0 200 8" preserveAspectRatio="none">
-                  <path d="M0,6 Q100,0 200,6" stroke="#D2F159" strokeWidth="5" fill="none" strokeLinecap="round"/>
-                </svg>
-              </span>
+          <div className="mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              Áttekinthető felület, gyors kezelés
             </h2>
           </div>
         }
       >
         {/* Dashboard Mockup */}
-        <div className="h-full w-full bg-white p-6 overflow-hidden">
+        <div className="h-full w-full bg-white p-4 md:p-6 overflow-hidden">
           {/* Top bar */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <MusqlLogo size={32} />
-              <span className="font-bold text-gray-900">Musql</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <MusqlLogo size={28} />
+              <span className="font-bold text-gray-900 text-sm">Musql</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gray-100" />
-              <span className="text-sm text-gray-600">Demo Stúdió</span>
+              <div className="w-7 h-7 rounded-full bg-gray-100" />
             </div>
           </div>
           
           {/* Stats row */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-4 gap-3 mb-4">
             {[
-              { label: "Aktív tagok", value: "127", icon: Users, change: "+12%" },
-              { label: "Mai órák", value: "8", icon: Calendar, change: "3 hátra" },
-              { label: "Havi bevétel", value: "847k", icon: TrendingUp, change: "+23%" },
-              { label: "Jelenlét", value: "89%", icon: CheckCircle2, change: "+5%" },
+              { label: "Aktív tagok", value: "47", icon: Users },
+              { label: "Mai órák", value: "5", icon: Calendar },
+              { label: "Havi bevétel", value: "312k", icon: CreditCard },
+              { label: "Jelenlét", value: "87%", icon: CheckCircle2 },
             ].map((stat, i) => (
-              <div key={i} className="bg-gray-50 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <stat.icon className="w-5 h-5 text-gray-400" />
-                  <span className="text-xs text-green-600 font-medium">{stat.change}</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                <div className="text-xs text-gray-500">{stat.label}</div>
+              <div key={i} className="bg-gray-50 rounded-lg p-3">
+                <stat.icon className="w-4 h-4 text-gray-400 mb-1" />
+                <div className="text-lg font-bold text-gray-900">{stat.value}</div>
+                <div className="text-[10px] text-gray-500">{stat.label}</div>
               </div>
             ))}
           </div>
           
-          {/* Main content */}
-          <div className="grid grid-cols-3 gap-4">
-            {/* Schedule */}
-            <div className="col-span-2 bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-semibold text-gray-900">Mai órarend</span>
-                <span className="text-xs text-gray-500">Január 27.</span>
-              </div>
-              <div className="space-y-2">
-                {[
-                  { time: "09:00", name: "Reggeli jóga", trainer: "Kiss Anna", spots: "12/15", status: "done" },
-                  { time: "11:00", name: "HIIT Training", trainer: "Nagy Péter", spots: "8/10", status: "done" },
-                  { time: "14:00", name: "BJJ Alapok", trainer: "Szabó Márk", spots: "14/20", status: "active" },
-                  { time: "17:00", name: "CrossFit WOD", trainer: "Tóth Gábor", spots: "6/12", status: "upcoming" },
-                  { time: "19:00", name: "Esti jóga", trainer: "Kiss Anna", spots: "9/15", status: "upcoming" },
-                ].map((session, i) => (
-                  <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${
-                    session.status === 'active' ? 'bg-[#D2F159]/20 border border-[#D2F159]/30' : 
-                    session.status === 'done' ? 'bg-gray-100 opacity-60' : 'bg-white border border-gray-100'
-                  }`}>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-mono text-gray-500 w-12">{session.time}</span>
-                      <div>
-                        <div className="font-medium text-gray-900 text-sm">{session.name}</div>
-                        <div className="text-xs text-gray-500">{session.trainer}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">{session.spots}</span>
-                      {session.status === 'active' && (
-                        <span className="px-2 py-0.5 bg-[#D2F159] text-gray-900 text-xs font-medium rounded-full">Folyamatban</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {/* Schedule */}
+          <div className="bg-gray-50 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-semibold text-gray-900 text-sm">Mai órarend</span>
             </div>
-            
-            {/* Recent members */}
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-semibold text-gray-900">Új tagok</span>
-                <span className="text-xs text-[#9EBB35] font-medium">+5 e héten</span>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { name: "Horváth Lilla", plan: "Prémium", days: "2 napja" },
-                  { name: "Molnár Bence", plan: "Alap", days: "3 napja" },
-                  { name: "Varga Eszter", plan: "Prémium", days: "5 napja" },
-                  { name: "Fekete Ádám", plan: "Alap", days: "6 napja" },
-                ].map((member, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                      <span className="text-xs font-medium text-gray-600">{member.name.charAt(0)}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900 truncate">{member.name}</div>
-                      <div className="text-xs text-gray-500">{member.plan} • {member.days}</div>
-                    </div>
+            <div className="space-y-2">
+              {[
+                { time: "09:00", name: "Reggeli jóga", spots: "8/12", done: true },
+                { time: "11:00", name: "Funkcionális edzés", spots: "10/10", done: true },
+                { time: "14:00", name: "BJJ kezdő", spots: "6/15", active: true },
+                { time: "17:00", name: "CrossFit", spots: "4/12" },
+              ].map((s, i) => (
+                <div key={i} className={`flex items-center justify-between p-2 rounded-lg text-sm ${
+                  s.active ? 'bg-[#D2F159]/20 border border-[#D2F159]/30' : 
+                  s.done ? 'bg-gray-100 opacity-60' : 'bg-white border border-gray-100'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono text-gray-500 w-10">{s.time}</span>
+                    <span className="font-medium text-gray-900">{s.name}</span>
                   </div>
-                ))}
-              </div>
+                  <span className="text-xs text-gray-500">{s.spots}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </ContainerScroll>
 
       {/* Features Section */}
-      <section id="funkciok" className="relative py-32 px-6">
-        <div className="max-w-6xl mx-auto">
-          <RevealSection className="text-center mb-16">
-            <span className="text-[#9EBB35] text-sm font-semibold tracking-wide uppercase mb-4 block">Funkciók</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Minden ami kell, egy helyen
+      <section id="funkciok" className="py-16 px-6">
+        <div className="max-w-5xl mx-auto">
+          <RevealSection className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+              Minden, ami a működéshez kell
             </h2>
-            <p className="text-gray-500 max-w-xl mx-auto text-lg">
-              Nincs több Excel, nincs több Messenger-csoport. A Musql mindent megold.
+            <p className="text-gray-500 max-w-lg mx-auto">
+              Legyen szó óratartásról, bérletekről vagy fizetésekről — a Musql segít rendben tartani.
             </p>
           </RevealSection>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {features.map((feature, i) => (
               <FeatureCard key={feature.title} {...feature} index={i} />
             ))}
@@ -550,153 +417,118 @@ export default function LandingPage() {
       </section>
 
       {/* Mobile Section */}
-      <section className="relative py-32 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
             <RevealSection>
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm font-medium mb-6">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm font-medium mb-4">
                 <Smartphone className="w-4 h-4" />
-                Mobilbarát
+                Mobilra optimalizálva
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                Kezeld az edzéstermet bárhonnan
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Vidd magaddal az edzőtermet
               </h2>
-              <p className="text-gray-500 mb-8 text-lg leading-relaxed">
-                A Musql tökéletesen működik mobilon is. Jelenlét vezetése, 
-                új tagok felvétele, fizetések kezelése — mind egy kattintásra.
+              <p className="text-gray-500 mb-6">
+                A Musql mobilon is tökéletesen működik. Jelenlét beírása, új tag felvétele, 
+                fizetés rögzítése — bárhol, bármikor.
               </p>
-              <ul className="space-y-4">
-                {["Jelenlét vezetés QR kóddal", "Push értesítések", "Offline működés", "Gyors tagfelvétel"].map((item, i) => (
-                  <motion.li 
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex items-center gap-3"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-[#D2F159] flex items-center justify-center">
-                      <CheckCircle2 className="w-4 h-4 text-gray-900" />
+              <ul className="space-y-3">
+                {["Gyors jelenlét QR kóddal", "Push értesítések", "Offline módban is elérhető"].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-[#D2F159] flex items-center justify-center">
+                      <CheckCircle2 className="w-3 h-3 text-gray-900" />
                     </div>
-                    <span className="text-gray-700 font-medium">{item}</span>
-                  </motion.li>
+                    <span className="text-gray-700">{item}</span>
+                  </li>
                 ))}
               </ul>
             </RevealSection>
             
-            <RevealSection delay={0.2} className="relative">
-              <div className="relative bg-gradient-to-br from-gray-100 to-gray-50 rounded-[40px] p-6 shadow-2xl shadow-gray-200/50">
+            <RevealSection delay={0.1} className="relative">
+              <div className="relative bg-gradient-to-br from-gray-100 to-gray-50 rounded-[36px] p-5 shadow-xl max-w-[280px] mx-auto">
                 {/* Phone frame */}
-                <div className="aspect-[9/19] bg-gray-900 rounded-[32px] shadow-xl overflow-hidden border-[8px] border-gray-900 relative">
+                <div className="aspect-[9/19] bg-gray-900 rounded-[28px] overflow-hidden border-[6px] border-gray-900 relative">
                   {/* Status bar */}
-                  <div className="bg-gray-900 px-6 py-2 flex items-center justify-between text-white text-xs">
+                  <div className="bg-gray-900 px-5 py-1.5 flex items-center justify-between text-white text-[10px]">
                     <span>9:41</span>
-                    <div className="absolute left-1/2 -translate-x-1/2 w-20 h-6 bg-black rounded-full" />
+                    <div className="absolute left-1/2 -translate-x-1/2 w-16 h-5 bg-black rounded-full" />
                     <div className="flex items-center gap-1">
-                      <div className="flex gap-0.5">
-                        <div className="w-1 h-2 bg-white rounded-sm" />
-                        <div className="w-1 h-2.5 bg-white rounded-sm" />
-                        <div className="w-1 h-3 bg-white rounded-sm" />
-                        <div className="w-1 h-3.5 bg-white rounded-sm" />
-                      </div>
-                      <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.1 1 4 2.6 5.4L3 21l5-2.5c1.3.5 2.6.5 4 .5 5.5 0 10-3.6 10-8s-4.5-8-10-8z"/></svg>
-                      <div className="w-6 h-3 border border-white rounded-sm relative">
-                        <div className="absolute inset-0.5 bg-[#D2F159] rounded-sm" style={{ width: '80%' }} />
+                      <div className="w-5 h-2.5 border border-white rounded-sm relative">
+                        <div className="absolute inset-0.5 bg-[#D2F159] rounded-sm" style={{ width: '75%' }} />
                       </div>
                     </div>
                   </div>
                   
                   {/* App content */}
-                  <div className="bg-[#FAFAFA] h-full overflow-hidden">
-                    {/* App header */}
-                    <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100">
+                  <div className="bg-[#FAFAFA] h-full">
+                    {/* Header */}
+                    <div className="bg-white px-3 py-2 flex items-center justify-between border-b border-gray-100">
                       <div className="flex items-center gap-2">
-                        <MusqlLogo size={28} />
-                        <span className="font-bold text-gray-900 text-sm">Musql</span>
+                        <MusqlLogo size={22} />
+                        <span className="font-bold text-gray-900 text-xs">Musql</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                          <Bell className="w-4 h-4 text-gray-500" />
-                        </div>
-                      </div>
+                      <Bell className="w-4 h-4 text-gray-400" />
                     </div>
                     
-                    {/* Quick stats */}
-                    <div className="px-4 py-3">
-                      <p className="text-xs text-gray-500 mb-2">Ma, Január 27.</p>
+                    {/* Stats */}
+                    <div className="px-3 py-2">
                       <div className="grid grid-cols-2 gap-2">
-                        <div className="bg-white rounded-xl p-3 border border-gray-100">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Calendar className="w-4 h-4 text-[#D2F159]" />
-                            <span className="text-xs text-gray-500">Mai órák</span>
-                          </div>
-                          <p className="text-xl font-bold text-gray-900">5</p>
+                        <div className="bg-white rounded-lg p-2 border border-gray-100">
+                          <Calendar className="w-3 h-3 text-[#D2F159] mb-1" />
+                          <p className="text-base font-bold text-gray-900">5</p>
+                          <p className="text-[9px] text-gray-500">Mai órák</p>
                         </div>
-                        <div className="bg-white rounded-xl p-3 border border-gray-100">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Users className="w-4 h-4 text-[#D2F159]" />
-                            <span className="text-xs text-gray-500">Résztvevők</span>
-                          </div>
-                          <p className="text-xl font-bold text-gray-900">47</p>
+                        <div className="bg-white rounded-lg p-2 border border-gray-100">
+                          <Users className="w-3 h-3 text-[#D2F159] mb-1" />
+                          <p className="text-base font-bold text-gray-900">32</p>
+                          <p className="text-[9px] text-gray-500">Résztvevők</p>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Today's schedule */}
-                    <div className="px-4">
-                      <p className="text-xs font-semibold text-gray-900 mb-2">Következő óra</p>
-                      <div className="bg-[#D2F159] rounded-xl p-3 mb-2">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-semibold text-gray-900 text-sm">BJJ Alapok</span>
-                          <span className="text-xs bg-white/50 px-2 py-0.5 rounded-full text-gray-900">14:00</span>
+                    {/* Current session */}
+                    <div className="px-3">
+                      <p className="text-[9px] font-semibold text-gray-900 mb-1">Következő óra</p>
+                      <div className="bg-[#D2F159] rounded-lg p-2.5">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="font-semibold text-gray-900 text-xs">BJJ kezdő</span>
+                          <span className="text-[9px] bg-white/50 px-1.5 py-0.5 rounded-full text-gray-900">14:00</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-700">Szabó Márk</span>
-                          <span className="text-xs text-gray-700">14/20 hely</span>
+                        <div className="flex items-center justify-between text-[9px] text-gray-700">
+                          <span>Nagy Péter</span>
+                          <span>6/15 hely</span>
                         </div>
                       </div>
                       
-                      <p className="text-xs font-semibold text-gray-900 mb-2 mt-3">Később ma</p>
+                      <p className="text-[9px] font-semibold text-gray-900 mb-1 mt-2">Ma még</p>
                       {[
-                        { time: "17:00", name: "CrossFit WOD", spots: "6/12" },
-                        { time: "19:00", name: "Esti jóga", spots: "9/15" },
-                      ].map((session, i) => (
-                        <div key={i} className="bg-white rounded-xl p-3 mb-2 border border-gray-100 flex items-center justify-between">
+                        { time: "17:00", name: "CrossFit", spots: "4/12" },
+                        { time: "19:00", name: "Esti jóga", spots: "7/10" },
+                      ].map((s, i) => (
+                        <div key={i} className="bg-white rounded-lg p-2 mb-1.5 border border-gray-100 flex items-center justify-between">
                           <div>
-                            <p className="font-medium text-gray-900 text-sm">{session.name}</p>
-                            <p className="text-xs text-gray-500">{session.spots} hely</p>
+                            <p className="font-medium text-gray-900 text-[10px]">{s.name}</p>
+                            <p className="text-[8px] text-gray-500">{s.spots}</p>
                           </div>
-                          <span className="text-xs text-gray-500 font-mono">{session.time}</span>
+                          <span className="text-[9px] text-gray-500 font-mono">{s.time}</span>
                         </div>
                       ))}
                     </div>
                     
                     {/* Bottom nav */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 flex items-center justify-around">
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="w-6 h-6 bg-[#D2F159] rounded-lg flex items-center justify-center">
-                          <Calendar className="w-3.5 h-3.5 text-gray-900" />
+                    <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-2 flex items-center justify-around">
+                      {[
+                        { icon: Calendar, label: "Órarend", active: true },
+                        { icon: Users, label: "Tagok" },
+                        { icon: CreditCard, label: "Pénzügy" },
+                      ].map((item, i) => (
+                        <div key={i} className="flex flex-col items-center gap-0.5">
+                          <div className={`w-5 h-5 rounded-md flex items-center justify-center ${item.active ? 'bg-[#D2F159]' : ''}`}>
+                            <item.icon className={`w-3 h-3 ${item.active ? 'text-gray-900' : 'text-gray-400'}`} />
+                          </div>
+                          <span className={`text-[8px] ${item.active ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>{item.label}</span>
                         </div>
-                        <span className="text-[10px] text-gray-900 font-medium">Órarend</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="w-6 h-6 flex items-center justify-center">
-                          <Users className="w-4 h-4 text-gray-400" />
-                        </div>
-                        <span className="text-[10px] text-gray-400">Tagok</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="w-6 h-6 flex items-center justify-center">
-                          <BarChart3 className="w-4 h-4 text-gray-400" />
-                        </div>
-                        <span className="text-[10px] text-gray-400">Riportok</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="w-6 h-6 flex items-center justify-center">
-                          <CreditCard className="w-4 h-4 text-gray-400" />
-                        </div>
-                        <span className="text-[10px] text-gray-400">Pénzügy</span>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -707,110 +539,108 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="arak" className="relative py-32 px-6">
-        <div className="max-w-6xl mx-auto">
-          <RevealSection className="text-center mb-16">
-            <span className="text-[#9EBB35] text-sm font-semibold tracking-wide uppercase mb-4 block">Árazás</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Egyszerű, átlátható árazás
+      <section id="arak" className="py-16 px-6">
+        <div className="max-w-4xl mx-auto">
+          <RevealSection className="text-center mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+              Egyszerű, átlátható árak
             </h2>
-            <p className="text-gray-500 max-w-xl mx-auto text-lg">
-              15 napos ingyenes próbaidő minden csomagra. Nincs rejtett költség.
+            <p className="text-gray-500 mb-6">
+              15 napos ingyenes próbaidő minden csomagnál. Bármikor lemondható.
             </p>
+            
+            {/* Billing toggle */}
+            <div className="inline-flex items-center gap-1 p-1 bg-gray-100 rounded-full">
+              <button
+                onClick={() => setBillingPeriod("monthly")}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  billingPeriod === "monthly" ? 'bg-white shadow text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                Havi
+              </button>
+              <button
+                onClick={() => setBillingPeriod("annual")}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                  billingPeriod === "annual" ? 'bg-white shadow text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                Éves
+                <span className="text-[10px] bg-[#D2F159] text-gray-900 px-1.5 py-0.5 rounded-full font-bold">-17%</span>
+              </button>
+            </div>
           </RevealSection>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {pricingPlans.map((plan, i) => (
-              <PricingCard key={plan.name} {...plan} index={i} />
-            ))}
+          <div className="grid md:grid-cols-3 gap-4">
+            <PricingCard 
+              tier="STARTER" 
+              name="Alap" 
+              description="Egyéni edzőknek"
+              isPopular={false}
+              billingPeriod={billingPeriod}
+              index={0}
+            />
+            <PricingCard 
+              tier="PROFESSIONAL" 
+              name="Prémium" 
+              description="Stúdióknak, kluboknak"
+              isPopular={true}
+              billingPeriod={billingPeriod}
+              index={1}
+            />
+            <PricingCard 
+              tier="ENTERPRISE" 
+              name="Üzleti" 
+              description="Nagyobb szervezeteknek"
+              isPopular={false}
+              billingPeriod={billingPeriod}
+              index={2}
+            />
           </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="velemenyek" className="relative py-32 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <RevealSection className="text-center mb-16">
-            <span className="text-[#9EBB35] text-sm font-semibold tracking-wide uppercase mb-4 block">Vélemények</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Mit mondanak rólunk?
-            </h2>
-            <p className="text-gray-500">Edzők és stúdiótulajdonosok véleménye</p>
-          </RevealSection>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <TestimonialCard key={t.name} {...t} index={i} />
-            ))}
-          </div>
+          
+          <p className="text-center text-gray-400 text-sm mt-6">
+            Kérdésed van? Írj nekünk: <a href="mailto:info@musql.app" className="text-gray-600 hover:text-gray-900">info@musql.app</a>
+          </p>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="relative py-32 px-6">
-        <div className="max-w-4xl mx-auto">
-          <RevealSection className="relative text-center p-12 md:p-16 rounded-[40px] bg-gray-900 text-white overflow-hidden">
-            {/* Background decoration */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#D2F159]/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl" />
-            
-            <div className="relative">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                Készen állsz a váltásra?
-              </h2>
-              <p className="text-gray-400 mb-10 text-lg max-w-xl mx-auto">
-                Csatlakozz több száz elégedett edzőhöz. 15 nap ingyenes próba, 
-                bankkártya megadása nélkül.
-              </p>
-              <Link 
-                href="/auth/signup"
-                className="group inline-flex items-center gap-2 px-8 py-4 bg-[#D2F159] text-gray-900 font-bold rounded-full text-lg hover:bg-[#e5ff7a] transition-all shadow-xl shadow-[#D2F159]/30"
-              >
-                Ingyenes próba indítása
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
+      <section className="py-16 px-6">
+        <div className="max-w-3xl mx-auto">
+          <RevealSection className="text-center p-8 md:p-12 rounded-3xl bg-gray-900 text-white">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3">
+              Próbáld ki ingyen 15 napig
+            </h2>
+            <p className="text-gray-400 mb-6">
+              Nincs bankkártya megadás, nincs elköteleződés. Egyszerűen regisztrálj és kezdj el dolgozni.
+            </p>
+            <Link 
+              href="/auth/signup"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#D2F159] text-gray-900 font-bold rounded-full hover:bg-[#e5ff7a] transition-all"
+            >
+              Regisztráció
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </RevealSection>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative py-16 px-6 border-t border-gray-200 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div>
-              <Link href="/" className="flex items-center gap-2 mb-4">
-                <MusqlLogo size={32} />
-                <span className="font-bold text-gray-900">Musql</span>
-              </Link>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                Edzésmenedzsment rendszer jógastúdióknak, 
-                harcművészeti egyesületeknek és személyi edzőknek.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-900">Termék</h4>
-              <ul className="space-y-3 text-gray-500 text-sm">
-                <li><a href="#funkciok" className="hover:text-gray-900 transition-colors">Funkciók</a></li>
-                <li><a href="#arak" className="hover:text-gray-900 transition-colors">Árak</a></li>
-                <li><Link href="/auth/signin" className="hover:text-gray-900 transition-colors">Belépés</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-900">Jogi</h4>
-              <ul className="space-y-3 text-gray-500 text-sm">
-                <li><Link href="/adatvedelem" className="hover:text-gray-900 transition-colors">Adatvédelem</Link></li>
-                <li><a href="#" className="hover:text-gray-900 transition-colors">ÁSZF</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-gray-900">Kapcsolat</h4>
-              <ul className="space-y-3 text-gray-500 text-sm">
-                <li>info@musql.app</li>
-              </ul>
+      <footer className="py-10 px-6 border-t border-gray-200 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <Link href="/" className="flex items-center gap-2">
+              <MusqlLogo size={28} />
+              <span className="font-bold text-gray-900">Musql</span>
+            </Link>
+            <div className="flex items-center gap-6 text-sm text-gray-500">
+              <a href="#funkciok" className="hover:text-gray-900">Funkciók</a>
+              <a href="#arak" className="hover:text-gray-900">Árak</a>
+              <Link href="/adatvedelem" className="hover:text-gray-900">Adatvédelem</Link>
+              <a href="mailto:info@musql.app" className="hover:text-gray-900">Kapcsolat</a>
             </div>
           </div>
-          <div className="pt-8 border-t border-gray-100 text-center text-gray-400 text-sm">
+          <div className="mt-6 pt-6 border-t border-gray-100 text-center text-gray-400 text-sm">
             © {new Date().getFullYear()} Musql. Minden jog fenntartva.
           </div>
         </div>
