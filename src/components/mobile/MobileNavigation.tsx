@@ -4,39 +4,22 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { motion } from "framer-motion"
 import {
   Home,
-  Users,
   Calendar,
-  CheckSquare,
-  CreditCard,
-  BarChart3,
-  Menu,
-  Bell,
-  Settings,
-  Crown,
-  LogOut,
-  Smartphone,
-  User
+  Users,
+  Wallet,
+  User,
 } from "lucide-react"
-import { signOut, useSession } from "next-auth/react"
-import { NotificationDropdown } from "@/components/notifications/NotificationDropdown"
+import { useSession } from "next-auth/react"
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: Home },
-  { name: "Sportsmen", href: "/trainer/students", icon: Users },
-  { name: "Sessions", href: "/trainer/sessions", icon: Calendar },
-  { name: "Attendance", href: "/trainer/attendance", icon: CheckSquare },
-  { name: "Payments", href: "/trainer/payments", icon: CreditCard },
-  { name: "Reports", href: "/reports", icon: BarChart3 },
-  { name: "Profile", href: "/settings/notifications", icon: User },
-]
-
-const adminNavigation = [
-  { name: "Subscription", href: "/admin/subscription", icon: Crown },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Főoldal", href: "/", icon: Home },
+  { name: "Időpontok", href: "/idopontok", icon: Calendar },
+  { name: "Tagok", href: "/taglista", icon: Users },
+  { name: "Pénzügy", href: "/penzugy", icon: Wallet },
+  { name: "Profil", href: "/profil", icon: User },
 ]
 
 interface MobileNavigationProps {
@@ -46,20 +29,20 @@ interface MobileNavigationProps {
 // Pages that have their own custom bottom navigation/action bar
 const PAGES_WITH_CUSTOM_NAV = [
   "/fizetes",
-  "/idopontok",
-  "/taglista",
   "/helyszinek",
   "/csoportok",
   "/tagfelvetel",
-  "/penzugy",
-  "/profil",
   "/fiok",
   "/segitseg",
+  "/trainer",
+  "/admin",
+  "/reports",
+  "/ertesitesek",
+  "/settings",
 ]
 
 export function MobileNavigation({ className }: MobileNavigationProps) {
   const pathname = usePathname()
-  const [isOpen, setIsOpen] = useState(false)
   const { data: session } = useSession()
 
   // Check if we're on mobile
@@ -67,7 +50,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+      setIsMobile(window.innerWidth < 1024)
     }
 
     checkMobile()
@@ -85,120 +68,78 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
     return null
   }
 
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/"
+    return pathname.startsWith(href)
+  }
+
   return (
     <>
-      {/* Bottom Navigation Bar */}
+      {/* Pill-shaped Glassmorphism Bottom Navigation */}
       <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-2 py-1",
+        "fixed bottom-6 left-1/2 -translate-x-1/2 z-50",
         "safe-area-inset-bottom",
         className
       )}>
-        <div className="flex justify-around items-center max-w-md mx-auto">
-          {navigation.slice(0, 5).map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex flex-col items-center justify-center p-2 rounded-lg transition-colors min-w-[60px]",
-                  isActive
-                    ? "text-blue-600 bg-blue-50"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                )}
-              >
-                <item.icon className="w-5 h-5 mb-1" />
-                <span className="text-xs font-medium truncate">{item.name}</span>
-              </Link>
-            )
-          })}
-
-          {/* Menu Button */}
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex flex-col items-center justify-center p-2 rounded-lg min-w-[60px] h-auto"
-              >
-                <Menu className="w-5 h-5 mb-1" />
-                <span className="text-xs font-medium">More</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-lg max-h-[80vh]">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Menu</h3>
-                  <NotificationDropdown />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  {navigation.map((item) => {
-                    const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setIsOpen(false)}
-                        className={cn(
-                          "flex items-center space-x-3 p-3 rounded-lg transition-colors",
-                          isActive
-                            ? "bg-blue-50 text-blue-600 border border-blue-200"
-                            : "hover:bg-gray-50"
-                        )}
-                      >
-                        <item.icon className="w-5 h-5" />
-                        <span className="font-medium">{item.name}</span>
-                      </Link>
-                    )
-                  })}
-
-                  {adminNavigation.map((item) => {
-                    const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setIsOpen(false)}
-                        className={cn(
-                          "flex items-center space-x-3 p-3 rounded-lg transition-colors",
-                          isActive
-                            ? "bg-blue-50 text-blue-600 border border-blue-200"
-                            : "hover:bg-gray-50"
-                        )}
-                      >
-                        <item.icon className="w-5 h-5" />
-                        <span className="font-medium">{item.name}</span>
-                      </Link>
-                    )
-                  })}
-                </div>
-
-                <div className="border-t pt-4">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
+          className="relative"
+        >
+          {/* Glass container */}
+          <div className="flex items-center gap-1 px-3 py-2.5 rounded-full bg-[#252a32]/80 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/40">
+            {navigation.map((item) => {
+              const active = isActive(item.href)
+              const Icon = item.icon
+              
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="relative"
+                >
+                  <motion.div
+                    className={cn(
+                      "flex flex-col items-center justify-center px-4 py-2 rounded-full transition-all duration-200",
+                      active 
+                        ? "bg-[#D2F159]" 
+                        : "hover:bg-white/5"
+                    )}
+                    whileTap={{ scale: 0.92 }}
+                    transition={{ duration: 0.1 }}
                   >
-                    <LogOut className="w-4 h-4 mr-3" />
-                    Sign Out
-                  </Button>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
+                    <Icon 
+                      className={cn(
+                        "w-5 h-5 transition-colors",
+                        active ? "text-[#171725]" : "text-white/60"
+                      )} 
+                    />
+                    {active && (
+                      <motion.span 
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-[10px] font-semibold text-[#171725] mt-0.5"
+                      >
+                        {item.name}
+                      </motion.span>
+                    )}
+                  </motion.div>
+                </Link>
+              )
+            })}
+          </div>
+          
+          {/* Subtle glow effect */}
+          <div className="absolute inset-0 -z-10 rounded-full bg-[#D2F159]/20 blur-2xl opacity-30" />
+        </motion.div>
       </nav>
 
       {/* Add padding to body to account for fixed navigation */}
       <style jsx global>{`
-        body {
-          padding-bottom: 80px;
-        }
-
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
-          body {
-            padding-bottom: calc(80px + env(safe-area-inset-bottom));
+          .safe-area-inset-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
           }
         }
       `}</style>
