@@ -3,7 +3,7 @@
 import { useRef } from "react"
 
 interface TimeInput24hProps {
-  value: string // "HH:MM" format
+  value: string
   onChange: (value: string) => void
   disabled?: boolean
   className?: string
@@ -12,20 +12,16 @@ interface TimeInput24hProps {
 export function TimeInput24h({ value, onChange, disabled = false, className = "" }: TimeInput24hProps) {
   const minutesRef = useRef<HTMLInputElement>(null)
   
-  // Parse current value
   const [hours = "", minutes = ""] = (value || "").split(":")
 
   const handleHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/\D/g, "").slice(0, 2)
     
-    // Clamp to valid hour
     const num = parseInt(val, 10)
     if (val.length === 2 && num > 23) val = "23"
     
-    // Update value
     onChange(`${val}:${minutes}`)
     
-    // Auto-advance to minutes after 2 digits
     if (val.length === 2) {
       setTimeout(() => {
         minutesRef.current?.focus()
@@ -37,7 +33,6 @@ export function TimeInput24h({ value, onChange, disabled = false, className = ""
   const handleMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/\D/g, "").slice(0, 2)
     
-    // Clamp to valid minutes
     const num = parseInt(val, 10)
     if (val.length === 2 && num > 59) val = "59"
     
@@ -65,7 +60,7 @@ export function TimeInput24h({ value, onChange, disabled = false, className = ""
   }
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div className={`flex items-center ${className}`}>
       <input
         type="text"
         inputMode="numeric"
@@ -76,9 +71,9 @@ export function TimeInput24h({ value, onChange, disabled = false, className = ""
         placeholder="00"
         disabled={disabled}
         maxLength={2}
-        className="w-10 bg-transparent text-white text-center text-base outline-none placeholder-white/30"
+        className="w-6 bg-transparent text-white text-center text-xs outline-none placeholder-white/30"
       />
-      <span className="text-white/60 text-lg font-medium">:</span>
+      <span className="text-white/60 text-xs font-medium">:</span>
       <input
         ref={minutesRef}
         type="text"
@@ -89,7 +84,7 @@ export function TimeInput24h({ value, onChange, disabled = false, className = ""
         placeholder="00"
         disabled={disabled}
         maxLength={2}
-        className="w-10 bg-transparent text-white text-center text-base outline-none placeholder-white/30"
+        className="w-6 bg-transparent text-white text-center text-xs outline-none placeholder-white/30"
       />
     </div>
   )

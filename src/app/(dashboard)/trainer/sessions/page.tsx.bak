@@ -47,44 +47,30 @@ interface Location {
 }
 
 // Custom Time Picker Component - always 24h
-// Custom Time Picker Component - always 24h
-// Custom Time Picker Component - always 24h
-// Custom Time Picker Component - always 24h
-// Custom Time Picker Component - centered modal style
 function TimePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [tempHours, setTempHours] = useState(0)
-  const [tempMinutes, setTempMinutes] = useState(0)
   const [hours, minutes] = (value || "00:00").split(":").map(Number)
-  const hoursRef = useRef<HTMLDivElement>(null)
-  const minutesRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const openPicker = () => {
-    setTempHours(hours || 0)
-    setTempMinutes(minutes || 0)
-    setIsOpen(true)
-  }
-
-  const confirmTime = () => {
-    onChange(`${tempHours.toString().padStart(2, "0")}:${tempMinutes.toString().padStart(2, "0")}`)
-    setIsOpen(false)
-  }
-
-  // Scroll to selected time when modal opens
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => {
-        hoursRef.current?.children[tempHours]?.scrollIntoView({ block: "center", behavior: "instant" })
-        minutesRef.current?.children[Math.floor(tempMinutes / 5)]?.scrollIntoView({ block: "center", behavior: "instant" })
-      }, 50)
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
     }
-  }, [isOpen])
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const setTime = (h: number, m: number) => {
+    onChange(`${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`)
+  }
 
   return (
-    <>
+    <div ref={containerRef} className="relative">
       <button
         type="button"
-        onClick={openPicker}
+        onClick={() => setIsOpen(!isOpen)}
         className="w-full bg-[#252a32] text-white text-sm rounded-xl px-3 py-2.5 text-left flex items-center gap-2"
       >
         <Clock className="w-4 h-4 text-white/40" />
@@ -92,97 +78,50 @@ function TimePicker({ value, onChange }: { value: string; onChange: (v: string) 
       </button>
       
       {isOpen && (
-        <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-6" onClick={() => setIsOpen(false)}>
-          <div 
-            className="bg-[#252a32]/80 backdrop-blur-xl rounded-3xl p-8 border border-white/10 w-full max-w-xs shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-white text-center text-lg font-semibold mb-8">Válassz időpontot</h3>
-            
-            <div className="flex justify-center gap-6 mb-8">
-              {/* Hours */}
-              <div className="flex flex-col items-center">
-                <span className="text-white/40 text-xs mb-2">Óra</span>
-                <div 
-                  ref={hoursRef}
-                  className="h-40 w-16 overflow-y-auto scrollbar-thin bg-[#1a1f26] rounded-xl"
+        <div className="absolute top-full left-0 mt-1 bg-[#252a32] border border-white/10 rounded-xl p-3 z-50 flex gap-2">
+          <div className="flex flex-col items-center">
+            <span className="text-white/40 text-xs mb-1">Óra</span>
+            <div className="h-32 overflow-y-auto scrollbar-thin">
+              {Array.from({ length: 24 }, (_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setTime(i, minutes)}
+                  className={cn(
+                    "block w-10 py-1 text-center text-sm rounded",
+                    hours === i ? "bg-[#D2F159] text-[#171725]" : "text-white hover:bg-white/10"
+                  )}
                 >
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setTempHours(i)}
-                      className={cn(
-                        "block w-full py-2.5 text-center text-lg font-medium transition-colors",
-                        tempHours === i 
-                          ? "bg-[#D2F159] text-[#171725]" 
-                          : "text-white hover:bg-white/10"
-                      )}
-                    >
-                      {i.toString().padStart(2, "0")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="flex items-center text-white text-3xl font-bold pt-6">:</div>
-              
-              {/* Minutes */}
-              <div className="flex flex-col items-center">
-                <span className="text-white/40 text-xs mb-2">Perc</span>
-                <div 
-                  ref={minutesRef}
-                  className="h-40 w-16 overflow-y-auto scrollbar-thin bg-[#1a1f26] rounded-xl"
+                  {i.toString().padStart(2, "0")}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-white/40 text-xs mb-1">Perc</span>
+            <div className="h-32 overflow-y-auto scrollbar-thin">
+              {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => { setTime(hours, m); setIsOpen(false) }}
+                  className={cn(
+                    "block w-10 py-1 text-center text-sm rounded",
+                    minutes === m ? "bg-[#D2F159] text-[#171725]" : "text-white hover:bg-white/10"
+                  )}
                 >
-                  {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setTempMinutes(m)}
-                      className={cn(
-                        "block w-full py-2.5 text-center text-lg font-medium transition-colors",
-                        tempMinutes === m 
-                          ? "bg-[#D2F159] text-[#171725]" 
-                          : "text-white hover:bg-white/10"
-                      )}
-                    >
-                      {m.toString().padStart(2, "0")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            {/* Preview */}
-            <div className="text-center mb-8">
-              <span className="text-[#D2F159] text-4xl font-bold">
-                {tempHours.toString().padStart(2, "0")}:{tempMinutes.toString().padStart(2, "0")}
-              </span>
-            </div>
-            
-            {/* Buttons */}
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium"
-              >
-                Mégse
-              </button>
-              <button
-                type="button"
-                onClick={confirmTime}
-                className="flex-1 py-3 rounded-xl bg-[#D2F159] text-[#171725] font-semibold"
-              >
-                OK
-              </button>
+                  {m.toString().padStart(2, "0")}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
+
+// Clickable Date Input
 function DatePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null)
   

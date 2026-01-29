@@ -73,8 +73,8 @@ export const TIERS: Record<TierName, TierDefinition> = {
     monthlyPrice: 9990,
     yearlyPrice: 99990,
     limits: {
-      maxMembers: 30,
-      maxCoaches: 1,
+      maxMembers: 5,
+      maxCoaches: 2,
       maxLocations: 1,
       maxGroups: 3,
     },
@@ -131,9 +131,9 @@ export const TIERS: Record<TierName, TierDefinition> = {
     yearlyPrice: 299990,
     popular: true,
     limits: {
-      maxMembers: 150,
-      maxCoaches: 5,
-      maxLocations: 2,
+      maxMembers: 75,
+      maxCoaches: 10,
+      maxLocations: 3,
       maxGroups: 10,
     },
     features: {

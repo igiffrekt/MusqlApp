@@ -186,6 +186,7 @@ model Session {
   capacity       Int           @default(10)
   location       String?
   sessionType    SessionType   @default(REGULAR)
+  calendarColor   String?
   isRecurring    Boolean       @default(false)
   recurringRule  String?
   status         SessionStatus @default(SCHEDULED)

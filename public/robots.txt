@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /admin/
+Disallow: /trainer/
+Disallow: /setup/
+
+Sitemap: https://musql.app/sitemap.xml

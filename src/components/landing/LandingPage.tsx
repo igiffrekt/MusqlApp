@@ -12,6 +12,7 @@ import {
   MessageSquare, FileText, Clock, MapPin
 } from "lucide-react"
 import { ContainerScroll } from "@/components/ui/container-scroll-animation"
+import { Pricing } from "@/components/ui/pricing"
 
 // Musql Logo component
 const MusqlLogo = ({ size = 40, className = "" }: { size?: number, className?: string }) => (
@@ -59,7 +60,7 @@ const FeatureCard = ({ icon: Icon, title, description, index }: { icon: any, tit
         <Icon className="w-6 h-6 text-gray-900" />
       </div>
       <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-500 text-sm leading-relaxed">{description}</p>
+      <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
     </motion.div>
   )
 }
@@ -89,7 +90,7 @@ const TIER_FEATURES = {
     "Max 200 óra/hó", 
     "3 helyszín",
     "Online kártyás fizetés",
-    "Push értesítések",
+    "Push értesítések választható témákkal",
     "Riportok és statisztikák",
     "Csoportok kezelése",
   ],
@@ -126,6 +127,7 @@ const PricingCard = ({
   const monthlyPrice = MONTHLY_PRICES[tier]
   const annualTotal = getAnnualPrice(tier)
   const effectiveMonthly = billingPeriod === "annual" ? Math.round(annualTotal / 12) : monthlyPrice
+  const yearlySaving = monthlyPrice * 12 - annualTotal
   
   const Icon = tier === "STARTER" ? User : tier === "PROFESSIONAL" ? Crown : Building2
   
@@ -135,7 +137,7 @@ const PricingCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
-      className={`relative p-6 rounded-2xl transition-all duration-300 ${
+      className={`relative p-8 rounded-2xl transition-all duration-300 ${
         isPopular 
           ? 'bg-gray-900 text-white shadow-xl' 
           : 'bg-white border border-gray-200'
@@ -153,11 +155,11 @@ const PricingCard = ({
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
           isPopular ? 'bg-[#D2F159]' : 'bg-gray-100'
         }`}>
-          <Icon className={`w-5 h-5 ${isPopular ? 'text-gray-900' : 'text-gray-600'}`} />
+          <Icon className={`w-5 h-5 ${isPopular ? 'text-gray-900' : 'text-gray-700'}`} />
         </div>
         <div>
           <h3 className={`font-bold ${isPopular ? 'text-white' : 'text-gray-900'}`}>{name}</h3>
-          <p className={`text-xs ${isPopular ? 'text-gray-400' : 'text-gray-500'}`}>{description}</p>
+          <p className={`text-xs ${isPopular ? 'text-gray-300' : 'text-gray-600'}`}>{description}</p>
         </div>
       </div>
       
@@ -165,11 +167,17 @@ const PricingCard = ({
         <span className={`text-3xl font-bold ${isPopular ? 'text-white' : 'text-gray-900'}`}>
           {effectiveMonthly.toLocaleString('hu-HU')} Ft
         </span>
-        <span className={`text-sm ${isPopular ? 'text-gray-400' : 'text-gray-500'}`}>/hó</span>
+        <span className={`text-sm ${isPopular ? 'text-gray-300' : 'text-gray-600'}`}>/hó</span>
         {billingPeriod === "annual" && (
-          <div className={`text-xs mt-1 ${isPopular ? 'text-gray-400' : 'text-gray-500'}`}>
-            <span className="line-through">{monthlyPrice.toLocaleString('hu-HU')} Ft/hó</span>
-            <span className="text-[#D2F159] ml-2">2 hónap ingyen</span>
+          <div className={`text-sm mt-2 ${isPopular ? 'text-gray-300' : 'text-gray-600'}`}>
+            <div className="line-through text-xs">{monthlyPrice.toLocaleString('hu-HU')} Ft/hó</div>
+            <div className="mt-1">
+              <span className="font-semibold">{annualTotal.toLocaleString('hu-HU')} Ft/év</span>
+              <span className="text-xs ml-1">(előre fizetve)</span>
+            </div>
+            <div className="text-[#D2F159] font-medium mt-1">
+              Megtakarítás: {yearlySaving.toLocaleString('hu-HU')} Ft/év
+            </div>
           </div>
         )}
       </div>
@@ -177,8 +185,8 @@ const PricingCard = ({
       <ul className="space-y-2 mb-6">
         {TIER_FEATURES[tier].map((feature, i) => (
           <li key={i} className="flex items-center gap-2 text-sm">
-            <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${isPopular ? 'text-[#D2F159]' : 'text-[#D2F159]'}`} />
-            <span className={isPopular ? 'text-gray-300' : 'text-gray-600'}>{feature}</span>
+            <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${isPopular ? 'text-[#D2F159]' : 'text-green-600'}`} />
+            <span className={isPopular ? 'text-gray-200' : 'text-gray-700'}>{feature}</span>
           </li>
         ))}
       </ul>
@@ -196,38 +204,37 @@ const PricingCard = ({
     </motion.div>
   )
 }
-
 // Features list
 const features = [
   {
     icon: Calendar,
     title: "Órarend kezelés",
-    description: "Hozz létre ismétlődő vagy egyszeri órákat, kezeld a helyettesítéseket és a lemondásokat."
+    description: "Hozz létre hetente rendszeresen ismétlődő órákat, vagy akár egyszeri edzéseket. Kezeld a jelenléti ívet egy mozdulattal."
   },
   {
     icon: Users,
     title: "Tagnyilvántartás", 
-    description: "Tárold a tagok adatait, bérleteit, fizetési előzményeit egy helyen."
+    description: "Tagok, edzők és kiskorúak esetén szülők adatait is tárolhatod, és egymáshoz kapcsolhatod őket. Láthatod a fizetési előzményeiket, és hogy van-e tartozásuk."
   },
   {
     icon: CheckCircle2,
-    title: "Jelenléti ív",
-    description: "Vezetsd a jelenlétet QR kóddal vagy kézi bejelentkezéssel, kövesd a részvételi arányokat."
+    title: "Tagsági felület",
+    description: "A tagok egy egyedi kóddal csatlakozhatnak az egyesülethez, edzőteremhez, vagy jógaórához. Látni fogják, ha kezdődik egy eseményük, vagy bérletfizetésük esedékes. Küldhetnek direkt üzenetet az edzőknek, vagy akár felszerelés igényt is leadhatnak."
   },
   {
     icon: CreditCard,
     title: "Fizetés kezelés",
-    description: "Kövesd a beérkező díjakat, kezeld a lejárt bérleteket, fogadj online fizetést."
+    description: "Kövesd nyomon a befizetéseket, a lejárt bérleteket, és fogadj fizetéseket online."
   },
   {
     icon: Bell,
     title: "Értesítések",
-    description: "Küldj push értesítéseket és emaileket az órákról, fizetési emlékeztetőkről."
+    description: "Push értesítéseket küldhetsz tagoknak, vagy akár mindenkinek az egyesületben, csoportban. Értesítést kapsz, ha valaki felvételt kér, üzenetet küld neked, vagy fizetése esedékessé válik. A saját profilodban beállíthatod, miről kérsz értesítést."
   },
   {
     icon: BarChart3,
     title: "Riportok",
-    description: "Tekintsd át a bevételeket, látogatottságot, népszerű órákat átlátható grafikonokon."
+    description: "Gyönyörű, átlátható grafikonokon és jelentéseken követheted a bevételek alakulását, az órák látogatottságát, és még sok más érdekes, vagy hasznos adatot."
   },
 ]
 
@@ -240,13 +247,11 @@ export default function LandingPage() {
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-[#D2F159]/15 to-transparent rounded-full blur-3xl" />
       </div>
-
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50">
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-xl border-b border-gray-200/50" />
-        <div className="relative max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+{/* Navigation */}
+      <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-4">
+        <div className="bg-white/60 backdrop-blur-2xl border border-white/20 shadow-lg shadow-black/5 rounded-full px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <MusqlLogo size={36} />
+            <MusqlLogo size={32} />
             <span className="text-lg font-bold text-gray-900">Musql</span>
           </Link>
           <div className="hidden md:flex items-center gap-6">
@@ -268,7 +273,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-28 pb-8 px-6">
+      <section className="pb-8 px-6 pt-28 md:pt-44">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -277,7 +282,7 @@ export default function LandingPage() {
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gray-200 shadow-sm text-sm mb-6"
           >
             <div className="w-2 h-2 rounded-full bg-[#D2F159]" />
-            <span className="text-gray-600">15 napos ingyenes próbaidő</span>
+            <span className="text-gray-600">Kötöttségek nélkül, 15 napig ingyen!</span>
           </motion.div>
           
           <motion.h1 
@@ -286,10 +291,10 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight"
           >
-            Edzéstermed kezelése
+            Edzések és tagok kezelése
             <br />
             <span className="relative inline-block">
-              egyszerűen
+              bárhonnan, egyszerűen.
               <svg className="absolute -bottom-1 left-0 w-full h-3" viewBox="0 0 200 8" preserveAspectRatio="none">
                 <path d="M0,6 Q100,0 200,6" stroke="#D2F159" strokeWidth="5" fill="none" strokeLinecap="round"/>
               </svg>
@@ -300,10 +305,9 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg text-gray-500 max-w-xl mx-auto mb-8"
+            className="text-lg text-gray-600 max-w-2xl mx-auto mb-8"
           >
-            Órarend, jelenléti ív, bérletek és fizetések — minden egy appban.
-            Jógastúdióknak, edzőtermeknek, harcművészeti kluboknak.
+            Órarendek, jelenléti ív, bérletek és befizetések - minden egy appban, modern, gyors felületről. Edzőtermeknek, személyi edzőknek, jógastúdióknak és harcművészeti egyesületeknek.
           </motion.p>
 
           <motion.div 
@@ -316,14 +320,14 @@ export default function LandingPage() {
               href="/auth/signup"
               className="group px-6 py-3 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
             >
-              Kipróbálom ingyen
+              Ingyen próba
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <a 
               href="#funkciok"
               className="px-6 py-3 text-gray-600 font-medium hover:text-gray-900 transition-colors"
             >
-              Funkciók megtekintése
+              Funkció áttekintése
             </a>
           </motion.div>
         </div>
@@ -334,11 +338,10 @@ export default function LandingPage() {
         titleComponent={
           <div className="mb-4">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Áttekinthető felület, gyors kezelés
+              Kezelj mindent, bármilyen készülékről
             </h2>
           </div>
-        }
-      >
+        }>
         {/* Dashboard Mockup */}
         <div className="h-full w-full bg-white p-4 md:p-6 overflow-hidden">
           {/* Top bar */}
@@ -401,10 +404,10 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <RevealSection className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-              Minden, ami a működéshez kell
+              Segíthetünk?
             </h2>
-            <p className="text-gray-500 max-w-lg mx-auto">
-              Legyen szó óratartásról, bérletekről vagy fizetésekről — a Musql segít rendben tartani.
+            <p className="text-gray-600 max-w-lg mx-auto">
+              Edzések, helyszínek, tagok és tagdíjak vezetése, jelenléti ív és sok más, hogy neked csak az edzésre kelljen figyelned!
             </p>
           </RevealSection>
 
@@ -426,14 +429,14 @@ export default function LandingPage() {
                 Mobilra optimalizálva
               </span>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Vidd magaddal az edzőtermet
+                Könnyen. Gyorsan. Bármikor.
               </h2>
-              <p className="text-gray-500 mb-6">
-                A Musql mobilon is tökéletesen működik. Jelenlét beírása, új tag felvétele, 
-                fizetés rögzítése — bárhol, bármikor.
+              <p className="text-gray-600 mb-6">
+                A Musql mobilon is tökéletes. Jelenlét vezetése, új tagok felvétele, 
+                befizetések rögzítése - bárhol, bármikor.
               </p>
               <ul className="space-y-3">
-                {["Gyors jelenlét QR kóddal", "Push értesítések", "Offline módban is elérhető"].map((item, i) => (
+                {["Gyors jelenléti ív frissítés", "Push értesítések választható témákkal", "Átlátható, könnyen kezelhető módon"].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#D2F159] flex items-center justify-center">
                       <CheckCircle2 className="w-3 h-3 text-gray-900" />
@@ -538,70 +541,50 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="arak" className="py-16 px-6">
-        <div className="max-w-4xl mx-auto">
-          <RevealSection className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-              Egyszerű, átlátható árak
-            </h2>
-            <p className="text-gray-500 mb-6">
-              15 napos ingyenes próbaidő minden csomagnál. Bármikor lemondható.
-            </p>
-            
-            {/* Billing toggle */}
-            <div className="inline-flex items-center gap-1 p-1 bg-gray-100 rounded-full">
-              <button
-                onClick={() => setBillingPeriod("monthly")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  billingPeriod === "monthly" ? 'bg-white shadow text-gray-900' : 'text-gray-500'
-                }`}
-              >
-                Havi
-              </button>
-              <button
-                onClick={() => setBillingPeriod("annual")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-                  billingPeriod === "annual" ? 'bg-white shadow text-gray-900' : 'text-gray-500'
-                }`}
-              >
-                Éves
-                <span className="text-[10px] bg-[#D2F159] text-gray-900 px-1.5 py-0.5 rounded-full font-bold">-17%</span>
-              </button>
-            </div>
-          </RevealSection>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            <PricingCard 
-              tier="STARTER" 
-              name="Alap" 
-              description="Egyéni edzőknek"
-              isPopular={false}
-              billingPeriod={billingPeriod}
-              index={0}
-            />
-            <PricingCard 
-              tier="PROFESSIONAL" 
-              name="Prémium" 
-              description="Stúdióknak, kluboknak"
-              isPopular={true}
-              billingPeriod={billingPeriod}
-              index={1}
-            />
-            <PricingCard 
-              tier="ENTERPRISE" 
-              name="Üzleti" 
-              description="Nagyobb szervezeteknek"
-              isPopular={false}
-              billingPeriod={billingPeriod}
-              index={2}
-            />
-          </div>
-          
-          <p className="text-center text-gray-400 text-sm mt-6">
-            Kérdésed van? Írj nekünk: <a href="mailto:info@musql.app" className="text-gray-600 hover:text-gray-900">info@musql.app</a>
-          </p>
-        </div>
+{/* Pricing Section */}
+      <section id="arak">
+        <Pricing
+          title="Melyik lesz a neked való?"
+          description="Válassz a hozzád legjobban illő csomagunkból. Ne aggódj, a fizetési mód megadása csak biztonsági okokból kötelező. 15 napig semmit nem vonunk le és ez idő alatt bármikor felmondhatod, kötöttségek nélkül!"
+          plans={[
+            {
+              name: "Alap",
+              price: MONTHLY_PRICES.STARTER,
+              yearlyPrice: getAnnualPrice("STARTER"),
+              yearlySaving: MONTHLY_PRICES.STARTER * 12 - getAnnualPrice("STARTER"),
+              features: TIER_FEATURES.STARTER,
+              description: "Egyéni edzőknek",
+              buttonText: "Próbaidő indítása",
+              href: "/auth/signup",
+              isPopular: false,
+            },
+            {
+              name: "Prémium",
+              price: MONTHLY_PRICES.PROFESSIONAL,
+              yearlyPrice: getAnnualPrice("PROFESSIONAL"),
+              yearlySaving: MONTHLY_PRICES.PROFESSIONAL * 12 - getAnnualPrice("PROFESSIONAL"),
+              features: TIER_FEATURES.PROFESSIONAL,
+              description: "Stúdióknak, kluboknak",
+              buttonText: "Próbaidő indítása",
+              href: "/auth/signup",
+              isPopular: true,
+            },
+            {
+              name: "Üzleti",
+              price: MONTHLY_PRICES.ENTERPRISE,
+              yearlyPrice: getAnnualPrice("ENTERPRISE"),
+              yearlySaving: MONTHLY_PRICES.ENTERPRISE * 12 - getAnnualPrice("ENTERPRISE"),
+              features: TIER_FEATURES.ENTERPRISE,
+              description: "Nagyobb szervezeteknek",
+              buttonText: "Próbaidő indítása",
+              href: "/auth/signup",
+              isPopular: false,
+            },
+          ]}
+        />
+        <p className="text-center text-gray-600 text-sm -mt-8 mb-8">
+          Kérdésed van? Írj nekünk: <a href="mailto:info@musql.app" className="hover:text-gray-900 underline">info@musql.app</a> vagy ha úgy könnyebb, hívhatsz is a <a href="tel:+36203396404" className="hover:text-gray-900 underline">+36 20 339 6404</a> számon.
+        </p>
       </section>
 
       {/* CTA Section */}
@@ -609,10 +592,10 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto">
           <RevealSection className="text-center p-8 md:p-12 rounded-3xl bg-gray-900 text-white">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              Próbáld ki ingyen 15 napig
+              Próbáld ki, most 15 napig ingyen!
             </h2>
-            <p className="text-gray-400 mb-6">
-              Nincs bankkártya megadás, nincs elköteleződés. Egyszerűen regisztrálj és kezdj el dolgozni.
+            <p className="text-gray-500 mb-6">
+              Elköteleződés nélkül, bármikor felmondható. Regisztrálj és figyeld, mennyivel egyszerűbb dolgod lesz!
             </p>
             <Link 
               href="/auth/signup"
@@ -636,7 +619,9 @@ export default function LandingPage() {
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <a href="#funkciok" className="hover:text-gray-900">Funkciók</a>
               <a href="#arak" className="hover:text-gray-900">Árak</a>
+              <Link href="/aszf" className="hover:text-gray-900">ÁSZF</Link>
               <Link href="/adatvedelem" className="hover:text-gray-900">Adatvédelem</Link>
+              <Link href="/cookie-szabalyzat" className="hover:text-gray-900">Cookie</Link>
               <a href="mailto:info@musql.app" className="hover:text-gray-900">Kapcsolat</a>
             </div>
           </div>

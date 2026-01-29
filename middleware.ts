@@ -23,8 +23,11 @@ export async function middleware(request: NextRequest) {
     '/adatvedelem',
     '/impresszum',
     '/aszf',
+    '/cookie-szabalyzat',
     '/onboarding',
     '/subscribe',
+    '/sitemap.xml',
+    '/robots.txt',
   ]
   
   // Root path shows landing page for unauthenticated users

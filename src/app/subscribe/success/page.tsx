@@ -1,9 +1,10 @@
 "use client"
 
-import { Suspense } from 'react'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CheckCircle, Loader2, ArrowRight } from 'lucide-react'
+import Image from 'next/image'
+import { motion } from 'framer-motion'
+import { CheckCircle, Loader2, ArrowRight, Sparkles } from 'lucide-react'
 
 function SuccessContent() {
   const router = useRouter()
@@ -15,21 +16,13 @@ function SuccessContent() {
     const sessionId = searchParams.get('session_id')
     
     if (!sessionId) {
-      // No session ID, just show success (user might have refreshed)
       setVerifying(false)
-      // Trigger confetti
       import('canvas-confetti').then(({ default: confetti }) => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#D2F159', '#ffffff', '#171725'],
-        })
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#D2F159', '#ffffff', '#171725'] })
       })
       return
     }
 
-    // Verify the session and update org
     fetch('/api/stripe/verify-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -40,21 +33,13 @@ function SuccessContent() {
         if (data.error) {
           setError(data.error)
         } else {
-          // Trigger confetti on success
           import('canvas-confetti').then(({ default: confetti }) => {
-            confetti({
-              particleCount: 100,
-              spread: 70,
-              origin: { y: 0.6 },
-              colors: ['#D2F159', '#ffffff', '#171725'],
-            })
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#D2F159', '#ffffff', '#171725'] })
           })
         }
         setVerifying(false)
       })
-      .catch(() => {
-        setVerifying(false)
-      })
+      .catch(() => setVerifying(false))
   }, [searchParams])
 
   if (verifying) {
@@ -71,16 +56,13 @@ function SuccessContent() {
   if (error) {
     return (
       <div className="min-h-screen bg-[#171725] flex items-center justify-center px-6">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+        <div className="bg-[#1E1E2D]/80 backdrop-blur-xl rounded-3xl p-8 border border-white/10 text-center max-w-md">
+          <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl">❌</span>
           </div>
           <h1 className="text-white text-xl font-bold mb-2">Hiba történt</h1>
           <p className="text-white/60 mb-6">{error}</p>
-          <button
-            onClick={() => router.push('/subscribe')}
-            className="px-6 py-3 bg-[#D2F159] text-[#171725] font-semibold rounded-full"
-          >
+          <button onClick={() => router.push('/subscribe')} className="px-6 py-3 bg-[#D2F159] text-[#171725] font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-[#D2F159]/20">
             Próbáld újra
           </button>
         </div>
@@ -89,46 +71,48 @@ function SuccessContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black font-lufga">
-      <div className="min-h-screen bg-[#171725] mx-[5px] my-[5px] rounded-2xl flex flex-col items-center justify-center px-6">
-        {/* Success icon */}
-        <div className="w-24 h-24 rounded-full bg-[#D2F159] flex items-center justify-center mb-6">
-          <CheckCircle className="w-12 h-12 text-[#171725]" />
-        </div>
+    <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: "#171725" }}>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div className="absolute -top-40 -right-40 w-80 h-80 lg:w-[500px] lg:h-[500px] rounded-full opacity-30" style={{ background: "radial-gradient(circle, #D2F159 0%, transparent 70%)" }} animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 8, repeat: Infinity }} />
+        <motion.div className="absolute -bottom-40 -left-40 w-80 h-80 lg:w-[500px] lg:h-[500px] rounded-full opacity-20" style={{ background: "radial-gradient(circle, #FF6F61 0%, transparent 70%)" }} animate={{ scale: [1.2, 1, 1.2] }} transition={{ duration: 8, repeat: Infinity }} />
+      </div>
 
-        <h1 className="text-white text-2xl font-bold text-center mb-3">
-          Sikeres aktiválás! 🎉
-        </h1>
+      <motion.div className="absolute top-6 left-6 z-20" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+        <Image src="/img/musql_logo.png" alt="Musql" width={120} height={32} className="h-8 w-auto" />
+      </motion.div>
 
-        <p className="text-white/60 text-center mb-2 max-w-sm">
-          A próbaidőd elindult. 15 napig minden funkció korlátlanul elérhető.
-        </p>
+      <div className="flex-1 flex items-center justify-center p-4">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md">
+          <div className="bg-[#1E1E2D]/80 backdrop-blur-xl rounded-3xl p-8 border border-white/10 text-center">
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.2 }} className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#D2F159] to-[#D2F159]/70 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#D2F159]/20">
+              <CheckCircle className="w-10 h-10 text-[#171725]" />
+            </motion.div>
 
-        <p className="text-[#D2F159] text-sm text-center mb-8">
-          Üdvözlünk a Musql-ban!
-        </p>
+            <h1 className="text-white text-2xl lg:text-3xl font-bold mb-3">Sikeres aktiválás! 🎉</h1>
+            <p className="text-white/60 mb-2">A próbaidőd elindult. 15 napig minden funkció korlátlanul elérhető.</p>
+            <p className="text-[#D2F159] text-sm mb-8">Üdvözlünk a Musql-ban!</p>
 
-        {/* Features unlocked */}
-        <div className="w-full max-w-sm bg-[#252a32] rounded-2xl p-5 border border-white/10 mb-8">
-          <p className="text-white/40 text-xs uppercase tracking-wider mb-3">Mostantól elérhető</p>
-          <ul className="space-y-2">
-            {['Tagok kezelése', 'Órák szervezése', 'Jelenléti ívek', 'Fizetések követése'].map((feature, i) => (
-              <li key={i} className="flex items-center gap-2 text-white">
-                <span className="text-[#D2F159]">✓</span>
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </div>
+            <div className="bg-[#252a32] rounded-xl p-5 mb-8 text-left">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4 text-[#D2F159]" />
+                <p className="text-white/40 text-xs uppercase tracking-wider">Mostantól elérhető</p>
+              </div>
+              <ul className="space-y-2">
+                {['Tagok kezelése', 'Órák szervezése', 'Jelenléti ívek', 'Fizetések követése'].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-2 text-white text-sm">
+                    <span className="text-[#D2F159]">✓</span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-        {/* CTA */}
-        <button
-          onClick={() => router.push('/')}
-          className="w-full max-w-sm py-4 rounded-full bg-[#D2F159] text-[#171725] font-bold text-lg flex items-center justify-center gap-2"
-        >
-          Irány a vezérlőpult
-          <ArrowRight className="w-5 h-5" />
-        </button>
+            <button onClick={() => router.push('/')} className="w-full bg-gradient-to-r from-[#D2F159] to-[#c4e350] text-[#171725] rounded-xl py-4 font-bold flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-[#D2F159]/20">
+              Irány a vezérlőpult
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </motion.div>
       </div>
     </div>
   )
@@ -136,11 +120,7 @@ function SuccessContent() {
 
 export default function SubscribeSuccessPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#171725] flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-[#D2F159] animate-spin" />
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen bg-[#171725] flex items-center justify-center"><Loader2 className="w-12 h-12 text-[#D2F159] animate-spin" /></div>}>
       <SuccessContent />
     </Suspense>
   )

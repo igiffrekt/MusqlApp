@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
       return authResult.response
     }
 
-    const { organizationId, userId } = authResult
+    const { organizationId, user } = authResult
+    const userId = user.id
     const { licenseTier, currency = 'EUR', billingPeriod = 'monthly' } = await request.json()
 
     // Validate tier
@@ -140,16 +141,17 @@ export async function POST(request: NextRequest) {
         },
       },
       success_url: `${baseUrl}/subscribe/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/subscribe/pending`,
+      cancel_url: `${baseUrl}/subscribe`,
       metadata: {
         organizationId,
         licenseTier,
         setupToken,
         billingPeriod,
       },
+      locale: 'hu',
       allow_promotion_codes: true,
-      billing_address_collection: 'auto',
-      payment_method_collection: 'if_required',
+      billing_address_collection: 'required',
+      payment_method_collection: 'always',
     })
 
     return NextResponse.json({ 
@@ -159,8 +161,10 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Failed to create checkout session:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const stripeError = (error as any)?.raw?.message || (error as any)?.message || errorMessage
     return NextResponse.json(
-      { message: 'Failed to create checkout session' },
+      { message: stripeError || 'Failed to create checkout session' },
       { status: 500 }
     )
   }

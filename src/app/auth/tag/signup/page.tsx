@@ -3,9 +3,9 @@
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { motion } from "framer-motion"
-import { Input } from "@/components/ui/input"
-import { ArrowLeft, Building2, CheckCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, Building2, CheckCircle, User, Mail, Phone, MessageSquare, Loader2, UserPlus } from "lucide-react"
 
 interface Organization {
   id: string
@@ -28,7 +28,6 @@ function TagSignUpContent() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
 
-  // Fetch organization on mount
   useEffect(() => {
     if (orgSlug) {
       fetchOrganization(orgSlug)
@@ -51,18 +50,16 @@ function TagSignUpContent() {
     e.preventDefault()
     setError("")
 
-    if (!organization) {
-      setError("Kérlek előbb válaszd ki a szervezetet")
-      return
-    }
-
     if (!formData.name.trim()) {
       setError("Név megadása kötelező")
       return
     }
-
     if (!formData.email.trim()) {
       setError("Email megadása kötelező")
+      return
+    }
+    if (!organization) {
+      setError("Szervezet nem található")
       return
     }
 
@@ -71,15 +68,13 @@ function TagSignUpContent() {
     try {
       const response = await fetch("/api/join-requests", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          slug: organization.slug,
           name: formData.name.trim(),
           email: formData.email.trim().toLowerCase(),
           phone: formData.phone.trim() || null,
           message: formData.message.trim() || null,
+          organizationId: organization.id,
         }),
       })
 
@@ -88,7 +83,7 @@ function TagSignUpContent() {
       if (response.ok) {
         setSuccess(true)
       } else {
-        setError(data.message || "Hiba történt a kérelem küldése során")
+        setError(data.message || "Hiba történt a csatlakozási kérelem küldése során")
       }
     } catch (error) {
       console.error("Join request error:", error)
@@ -105,73 +100,90 @@ function TagSignUpContent() {
     }))
   }
 
+  // Success state
   if (success) {
     return (
       <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: "#171725" }}>
+        {/* Animated background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div
+            className="absolute -top-40 -right-40 w-80 h-80 lg:w-[500px] lg:h-[500px] rounded-full opacity-30"
+            style={{ background: "radial-gradient(circle, #FF6F61 0%, transparent 70%)" }}
+            animate={{ scale: [1, 1.2, 1], x: [0, 30, 0], y: [0, -20, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute -bottom-40 -left-40 w-80 h-80 lg:w-[500px] lg:h-[500px] rounded-full opacity-20"
+            style={{ background: "radial-gradient(circle, #D2F159 0%, transparent 70%)" }}
+            animate={{ scale: [1.2, 1, 1.2], x: [0, -20, 0], y: [0, 30, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+
+        {/* Logo */}
+        <motion.div 
+          className="absolute top-6 left-6 z-20"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Image src="/img/musql_logo.png" alt="Musql" width={150} height={40} className="h-8 lg:h-10 w-auto" />
+        </motion.div>
+
         <div className="flex-1 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md text-center"
+            className="w-full max-w-md"
           >
-            <div className="w-20 h-20 rounded-full bg-[#FF6F61]/20 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-[#FF6F61]" />
+            <div className="bg-[#1E1E2D]/80 backdrop-blur-xl rounded-3xl p-8 border border-white/10 text-center">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", delay: 0.2 }}
+                className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#D2F159] to-[#D2F159]/70 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#D2F159]/20"
+              >
+                <CheckCircle className="w-10 h-10 text-[#171725]" />
+              </motion.div>
+              
+              <h2 className="text-2xl lg:text-3xl font-bold text-white mb-4">
+                Kérelem elküldve!
+              </h2>
+              <p className="text-white/60 mb-6">
+                A csatlakozási kérelmed sikeresen elküldve a következő szervezethez:
+              </p>
+              
+              <div className="bg-[#252a32] rounded-xl p-4 mb-6">
+                <p className="text-[#FF6F61] font-semibold text-lg">{organization?.name}</p>
+              </div>
+              
+              <p className="text-white/40 text-sm mb-8">
+                Amint az edző jóváhagyja a kérelmedet, emailben értesítünk és be tudsz jelentkezni.
+              </p>
+
+              <Link
+                href="/auth/signin"
+                className="inline-block py-3 px-6 rounded-xl text-white/60 hover:text-white border border-white/10 hover:border-white/20 transition-all"
+              >
+                Vissza a főoldalra
+              </Link>
             </div>
-            <h2
-              className="text-2xl font-bold text-white mb-4"
-              style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-            >
-              Kérelmed elküldve!
-            </h2>
-            <p
-              className="text-white/70 mb-8"
-              style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-            >
-              A szervezet adminisztrátora hamarosan jóváhagyja a kérelmedet.
-              Értesíteni fogunk email-ben.
-            </p>
-            <Link
-              href="/auth/signin"
-              className="inline-block py-3 px-6 rounded-full text-white/70 hover:text-white border border-white/20 hover:border-white/40 transition-colors"
-              style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-            >
-              Vissza a főoldalra
-            </Link>
           </motion.div>
         </div>
       </div>
     )
   }
 
+  // No organization found
   if (!orgSlug) {
     return (
       <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: "#171725" }}>
         <div className="flex-1 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md text-center"
-          >
-            <h2
-              className="text-2xl font-bold text-white mb-4"
-              style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-            >
-              Előbb válaszd ki a szervezetet
-            </h2>
-            <p
-              className="text-white/70 mb-8"
-              style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-            >
-              A csatlakozáshoz előbb add meg a szervezet kódját.
-            </p>
-            <Link
-              href="/auth/tag/join"
-              className="inline-block py-4 px-8 rounded-full font-semibold text-white bg-[#FF6F61] hover:bg-[#FF6F61]/90 transition-colors"
-              style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-            >
+          <div className="text-center">
+            <p className="text-white/60 mb-4">Hiányzó szervezet kód.</p>
+            <Link href="/auth/tag/join" className="text-[#FF6F61] hover:text-[#FF6F61]/80 transition-colors">
               Szervezet keresése
             </Link>
-          </motion.div>
+          </div>
         </div>
       </div>
     )
@@ -179,207 +191,189 @@ function TagSignUpContent() {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: "#171725" }}>
-      {/* Back Button */}
-      <div className="absolute top-6 left-6 z-20">
-        <Link
-          href="/auth/tag/join"
-          className="flex items-center space-x-2 text-white/70 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>Vissza</span>
-        </Link>
+      {/* Animated background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute -top-40 -right-40 w-80 h-80 lg:w-[500px] lg:h-[500px] rounded-full opacity-30"
+          style={{ background: "radial-gradient(circle, #FF6F61 0%, transparent 70%)" }}
+          animate={{ scale: [1, 1.2, 1], x: [0, 30, 0], y: [0, -20, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute -bottom-40 -left-40 w-80 h-80 lg:w-[500px] lg:h-[500px] rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, #D2F159 0%, transparent 70%)" }}
+          animate={{ scale: [1.2, 1, 1.2], x: [0, -20, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
 
+      {/* Back Button */}
+      <motion.div 
+        className="absolute top-6 left-6 z-20"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+      >
+        <Link
+          href="/auth/tag/join"
+          className="flex items-center gap-2 text-white/60 hover:text-white transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Vissza</span>
+        </Link>
+      </motion.div>
+
+      {/* Logo */}
+      <motion.div 
+        className="absolute top-6 right-6 z-20"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Image src="/img/musql_logo.png" alt="Musql" width={150} height={40} className="h-8 lg:h-10 w-auto" />
+      </motion.div>
+
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
-        <div className="w-full max-w-md relative">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
-            className="relative rounded-3xl overflow-hidden"
-            style={{
-              background: "#171725",
-              backdropFilter: "blur(20px)",
-              border: "1px solid rgba(255, 255, 255, 0.1)"
-            }}
-          >
-            <div className="p-8 space-y-6">
-              {/* Header */}
-              <div className="text-center space-y-2">
-                <motion.h2
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="text-3xl font-bold text-white"
-                  style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-                >
-                  Csatlakozási kérelem
-                </motion.h2>
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
-                  className="text-white/70 text-sm"
-                  style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-                >
-                  Töltsd ki az adataidat
-                </motion.p>
+      <div className="flex-1 flex items-center justify-center p-4 pt-20 lg:pt-4">
+        <motion.div 
+          className="w-full max-w-md"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <div className="bg-[#1E1E2D]/80 backdrop-blur-xl rounded-3xl p-6 lg:p-8 border border-white/10">
+            {/* Header */}
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#FF6F61] to-[#FF6F61]/70 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#FF6F61]/20">
+                <UserPlus className="w-8 h-8 text-white" />
               </div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
+                Csatlakozási kérelem
+              </h1>
+              <p className="text-white/60">
+                Add meg az adataidat
+              </p>
+            </div>
 
-              {/* Organization Info */}
-              {organization && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-2xl bg-[#FF6F61]/10 border border-[#FF6F61]/20 p-4"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#FF6F61]/20 flex items-center justify-center">
-                      <Building2 className="w-5 h-5 text-[#FF6F61]" />
-                    </div>
-                    <div>
-                      <p
-                        className="text-white/60 text-xs"
-                        style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-                      >
-                        Csatlakozas ide:
-                      </p>
-                      <h3
-                        className="text-white font-semibold"
-                        style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-                      >
-                        {organization.name}
-                      </h3>
-                    </div>
+            {/* Organization card */}
+            {organization && (
+              <div className="bg-[#FF6F61]/10 border border-[#FF6F61]/20 rounded-xl p-4 mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#FF6F61]/20 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="w-6 h-6 text-[#FF6F61]" />
                   </div>
-                </motion.div>
-              )}
+                  <div className="min-w-0">
+                    <h3 className="text-white font-semibold truncate">
+                      {organization.name}
+                    </h3>
+                    <p className="text-white/40 text-sm">
+                      Csatlakozás ehhez a szervezethez
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-              {/* Form */}
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <Input
-                    id="name"
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="text-white/60 text-sm block mb-2">Teljes neved *</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                  <input
                     name="name"
                     type="text"
                     required
-                    placeholder="Teljes neved *"
+                    placeholder="Teljes neved"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-[#FF6F61] focus:ring-[#FF6F61] rounded-full px-4 py-3"
-                    style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
+                    className="w-full bg-[#252a32] text-white rounded-xl pl-12 pr-4 py-4 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#FF6F61] transition-all"
+                    disabled={isLoading}
                   />
-                </motion.div>
+                </div>
+              </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25 }}
-                >
-                  <Input
-                    id="email"
+              <div>
+                <label className="text-white/60 text-sm block mb-2">Email cím *</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                  <input
                     name="email"
                     type="email"
                     required
-                    placeholder="Email címed *"
+                    placeholder="email@pelda.hu"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-[#FF6F61] focus:ring-[#FF6F61] rounded-full px-4 py-3"
-                    style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
+                    className="w-full bg-[#252a32] text-white rounded-xl pl-12 pr-4 py-4 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#FF6F61] transition-all"
+                    disabled={isLoading}
                   />
-                </motion.div>
+                </div>
+              </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <Input
-                    id="phone"
+              <div>
+                <label className="text-white/60 text-sm block mb-2">Telefonszám</label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                  <input
                     name="phone"
                     type="tel"
-                    placeholder="Telefonszám (opcionális)"
+                    placeholder="+36 30 123 4567"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-[#FF6F61] focus:ring-[#FF6F61] rounded-full px-4 py-3"
-                    style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
+                    className="w-full bg-[#252a32] text-white rounded-xl pl-12 pr-4 py-4 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#FF6F61] transition-all"
+                    disabled={isLoading}
                   />
-                </motion.div>
+                </div>
+              </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35 }}
-                >
+              <div>
+                <label className="text-white/60 text-sm block mb-2">Üzenet (opcionális)</label>
+                <div className="relative">
+                  <MessageSquare className="absolute left-4 top-4 w-5 h-5 text-white/40" />
                   <textarea
-                    id="message"
                     name="message"
-                    placeholder="Üzenet az edzőnek (opcionális)"
+                    placeholder="Pl. Érdeklődöm a kezdő csoport iránt..."
                     value={formData.message}
                     onChange={handleChange}
                     rows={3}
-                    className="w-full bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:border-[#FF6F61] focus:ring-[#FF6F61] rounded-2xl px-4 py-3 resize-none"
-                    style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
+                    className="w-full bg-[#252a32] text-white rounded-xl pl-12 pr-4 py-4 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#FF6F61] transition-all resize-none"
+                    disabled={isLoading}
                   />
-                </motion.div>
+                </div>
+              </div>
 
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="rounded-full bg-red-500/20 border border-red-500/30 p-3"
-                  >
-                    <p className="text-red-400 text-sm text-center" style={{ fontFamily: 'Lufga, Inter, sans-serif' }}>
-                      {error}
-                    </p>
-                  </motion.div>
-                )}
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  style={{ marginTop: '30px' }}
+                  className="bg-red-500/20 border border-red-500/50 text-red-400 rounded-xl px-4 py-3 text-sm text-center"
                 >
-                  <motion.button
-                    type="submit"
-                    disabled={isLoading || !organization}
-                    className="relative w-full py-4 px-8 rounded-full font-semibold text-white overflow-hidden disabled:opacity-50"
-                    style={{
-                      fontFamily: 'Lufga, Inter, sans-serif',
-                      backgroundColor: '#FF6F61',
-                      cursor: isLoading ? 'not-allowed' : 'pointer'
-                    }}
-                    whileHover={!isLoading ? { scale: 1.02 } : {}}
-                    whileTap={!isLoading ? { scale: 0.98 } : {}}
-                  >
-                    {isLoading ? "Küldés..." : "Kérelem küldése"}
-                  </motion.button>
+                  {error}
                 </motion.div>
+              )}
 
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.45 }}
-                  className="text-center"
-                >
-                  <Link
-                    href="/auth/tag/signin"
-                    className="text-white/70 text-sm transition-colors"
-                    style={{ fontFamily: 'Lufga, Inter, sans-serif' }}
-                  >
-                    Már regisztrált tag vagy? <span className="text-[#FF6F61] hover:text-[#FF6F61]/80">Bejelentkezés</span>
-                  </Link>
-                </motion.div>
-              </form>
-            </div>
-          </motion.div>
-        </div>
+              <button
+                type="submit"
+                disabled={isLoading || !organization}
+                className="w-full bg-gradient-to-r from-[#FF6F61] to-[#ff8577] text-white rounded-xl py-4 font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:shadow-lg hover:shadow-[#FF6F61]/20"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Küldés...
+                  </>
+                ) : (
+                  "Csatlakozási kérelem küldése"
+                )}
+              </button>
+
+              <p className="text-center text-white/40 text-sm pt-2">
+                Már regisztrált tag vagy?{" "}
+                <Link href="/auth/tag/signin" className="text-[#FF6F61] hover:text-[#FF6F61]/80 transition-colors">
+                  Bejelentkezés
+                </Link>
+              </p>
+            </form>
+          </div>
+        </motion.div>
       </div>
     </div>
   )
@@ -388,8 +382,8 @@ function TagSignUpContent() {
 export default function TagSignUp() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#171725" }}>
-        <Loader2 className="w-8 h-8 text-[#D2F159] animate-spin" />
+      <div className="min-h-screen bg-[#171725] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#FF6F61] animate-spin" />
       </div>
     }>
       <TagSignUpContent />
