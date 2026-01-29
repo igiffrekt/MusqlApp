@@ -122,16 +122,15 @@ export function DesktopSidebar() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex items-center gap-3"
+                className="flex items-center"
               >
                 <Image
-                  src="/img/musql_ikon.png"
+                  src="/img/musql_logo.png"
                   alt="Musql"
-                  width={44}
-                  height={44}
-                  className="rounded-xl"
+                  width={140}
+                  height={40}
+                  className="h-9 w-auto"
                 />
-                <span className="text-white font-semibold text-xl tracking-tight">Musql</span>
               </motion.div>
             )}
           </AnimatePresence>

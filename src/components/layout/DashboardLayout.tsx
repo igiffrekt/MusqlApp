@@ -27,14 +27,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   // Prevent hydration mismatch
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-black font-lufga">
+      <div className="min-h-screen bg-[#171725] font-lufga">
         <div className="pb-20 lg:pb-0">{children}</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black font-lufga">
+    <div className="min-h-screen bg-[#171725] font-lufga">
       {/* Desktop Layout */}
       {!isMobile && (
         <>
@@ -45,7 +45,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             animate={{ opacity: 1 }}
             className="ml-[280px] pt-20 min-h-screen"
           >
-            <div className="p-8 bg-[#171725] min-h-[calc(100vh-80px)] rounded-tl-3xl">
+            <div className="p-8">
               {children}
             </div>
           </motion.main>
@@ -55,7 +55,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Mobile Layout */}
       {isMobile && (
         <>
-          <main className="pb-20">
+          <main className="pb-24">
             {children}
           </main>
           <MobileNavigation />
