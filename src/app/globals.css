@@ -66,7 +66,7 @@
   }
   body {
     @apply bg-black text-gray-900;
-    font-family: var(--font-geist-sans), var(--font-inter), Arial, Helvetica, sans-serif;
+    font-family: 'Lufga', 'Inter', system-ui, sans-serif;
   }
   
   /* Lufga font - local files with support for Hungarian characters (őűÍíóüúáé) */

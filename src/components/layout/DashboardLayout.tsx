@@ -1,7 +1,7 @@
 "use client"
 
 import { ReactNode, useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { MobileNavigation } from "@/components/mobile/MobileNavigation"
 import { DesktopSidebar } from "@/components/layout/DesktopSidebar"
 import { DesktopHeader } from "@/components/layout/DesktopHeader"
@@ -27,14 +27,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   // Prevent hydration mismatch
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-[#171725]">
+      <div className="min-h-screen bg-black font-lufga">
         <div className="pb-20 lg:pb-0">{children}</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#171725]">
+    <div className="min-h-screen bg-black font-lufga">
       {/* Desktop Layout */}
       {!isMobile && (
         <>
@@ -43,9 +43,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <motion.main
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="ml-[280px] pt-16 min-h-screen"
+            className="ml-[280px] pt-20 min-h-screen"
           >
-            <div className="p-6 lg:p-8">
+            <div className="p-8 bg-[#171725] min-h-[calc(100vh-80px)] rounded-tl-3xl">
               {children}
             </div>
           </motion.main>

@@ -18,6 +18,11 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Lufga', 'Inter', 'system-ui', 'sans-serif'],
+        lufga: ['Lufga', 'sans-serif'],
+        nunito: ['Nunito', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
