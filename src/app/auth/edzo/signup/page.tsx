@@ -99,7 +99,7 @@ export default function EdzoSignUp() {
       })
 
       if (result?.ok) {
-        router.push("/setup")
+        router.push("/auth/start-trial")
       } else {
         setError("Automatikus bejelentkezés sikertelen. Kérlek, jelentkezz be manuálisan.")
         setIsRedirecting(false)
@@ -277,8 +277,8 @@ export default function EdzoSignUp() {
                       <Check className="w-4 h-4 text-[#D2F159]" />
                     </div>
                     <div>
-                      <p className="text-white font-medium">14 napos ingyenes próbaidő</p>
-                      <p className="text-white/40 text-sm">Nincs szükség bankkártya adatokra</p>
+                      <p className="text-white font-medium">15 napos ingyenes próbaidő</p>
+                      <p className="text-white/40 text-sm">Minden funkcióhoz hozzáférsz</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">

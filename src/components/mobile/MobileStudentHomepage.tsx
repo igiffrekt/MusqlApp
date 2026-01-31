@@ -10,6 +10,7 @@ import {
   AlertCircle, Send
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useUserProfile } from "@/contexts/UserProfileContext"
 import { MobileNotifications } from "./MobileNotifications"
 import { useNotificationsStore } from "@/lib/stores/notifications-store"
 
@@ -54,6 +55,7 @@ interface PaymentStatus {
 
 export function MobileStudentHomepage() {
   const { data: session } = useSession()
+  const { image: profileImage } = useUserProfile()
   const router = useRouter()
   const [upcomingSessions, setUpcomingSessions] = useState<UpcomingSession[]>([])
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null)
@@ -283,7 +285,7 @@ export function MobileStudentHomepage() {
               className="flex items-center space-x-3"
             >
               <Avatar className="w-12 h-12 border-2 border-[#D2F159]">
-                <AvatarImage src={session?.user?.image || ""} />
+                <AvatarImage src={profileImage || ""} />
                 <AvatarFallback className="bg-[#D2F159]/20 text-[#D2F159]">
                   {userInitials}
                 </AvatarFallback>

@@ -7,8 +7,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { Check, X, ChevronDown, ChevronUp, User, Loader2, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { MemberDetailPopup } from "./MemberDetailPopup"
 import { useMembersStore, type Member } from "@/lib/stores/members-store"
-import { MobileNavbar } from "./MobileNavbar"
 
 interface ApiGroup {
   id: string
@@ -55,6 +55,20 @@ export function MobileTaglista() {
   const [assigningMember, setAssigningMember] = useState<Member | null>(null)
   const [assigningGroups, setAssigningGroups] = useState<string[]>([])
   const [savingGroups, setSavingGroups] = useState(false)
+  
+  // Member Detail Popup
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
+  
+  // Add Member Modal
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
+  const [addMemberForm, setAddMemberForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    guardian: "",
+  })
+  const [addingMember, setAddingMember] = useState(false)
 
   // Fetch groups from API
   useEffect(() => {
@@ -253,6 +267,39 @@ export function MobileTaglista() {
       alert("Hiba történt a csoport hozzárendelés során")
     } finally {
       setSavingGroups(false)
+    }
+  }
+
+  const handleAddMember = async () => {
+    if (!addMemberForm.firstName || !addMemberForm.lastName) return
+    
+    setAddingMember(true)
+    try {
+      const response = await fetch("/api/students", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: addMemberForm.firstName,
+          lastName: addMemberForm.lastName,
+          email: addMemberForm.email || undefined,
+          phone: addMemberForm.phone || undefined,
+          guardian: addMemberForm.guardian || undefined,
+        }),
+      })
+
+      if (response.ok) {
+        setIsAddMemberOpen(false)
+        setAddMemberForm({ firstName: "", lastName: "", email: "", phone: "", guardian: "" })
+        await fetchMembers()
+      } else {
+        const error = await response.json()
+        alert(`Hiba történt: ${error.error || "Ismeretlen hiba"}`)
+      }
+    } catch (error) {
+      console.error("Failed to add member:", error)
+      alert("Hiba történt a tag hozzáadása során")
+    } finally {
+      setAddingMember(false)
     }
   }
 
@@ -547,11 +594,14 @@ export function MobileTaglista() {
                       key={member.id}
                       className="flex items-center justify-between py-3 px-1"
                     >
-                      {/* Name */}
-                      <div className="w-16">
+                      {/* Name - Clickable */}
+                      <button
+                        onClick={() => setSelectedMemberId(member.id)}
+                        className="w-16 text-left"
+                      >
                         <p className="text-white font-semibold text-xs">{member.firstName}</p>
                         <p className="text-[#D2F159] text-xs">{member.lastName}</p>
-                      </div>
+                      </button>
 
                       {/* Status Badge or Add to Group button */}
                       {getStatusBadge(member.status, member, group.id === "__ungrouped__")}
@@ -895,7 +945,135 @@ export function MobileTaglista() {
         </div>
       )}
 
-      <MobileNavbar />
+      {/* Add Member FAB */}
+      <button
+        onClick={() => setIsAddMemberOpen(true)}
+        className="fixed bottom-24 right-6 w-14 h-14 bg-[#D2F159] rounded-full flex items-center justify-center shadow-lg hover:bg-[#c5e44d] active:scale-95 transition-all z-40"
+        aria-label="Új tag hozzáadása"
+      >
+        <Plus className="w-7 h-7 text-[#171725]" />
+      </button>
+
+      {/* Member Detail Popup */}
+      <MemberDetailPopup
+        memberId={selectedMemberId || ""}
+        isOpen={!!selectedMemberId}
+        onClose={() => setSelectedMemberId(null)}
+        onPaymentRecorded={() => fetchMembers()}
+      />
+
+      {/* Add Member Modal */}
+      {isAddMemberOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6">
+          <div className="bg-[#252a32] rounded-[24px] w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-white text-xl font-semibold">Új tag hozzáadása</h2>
+              <button
+                onClick={() => {
+                  setIsAddMemberOpen(false)
+                  setAddMemberForm({ firstName: "", lastName: "", email: "", phone: "", guardian: "" })
+                }}
+                className="w-8 h-8 flex items-center justify-center text-white/60 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Form Fields */}
+            <div className="space-y-4">
+              {/* First Name */}
+              <div>
+                <label className="text-white/60 text-xs mb-1 block">Vezetéknév *</label>
+                <input
+                  type="text"
+                  value={addMemberForm.firstName}
+                  onChange={(e) => setAddMemberForm(prev => ({ ...prev, firstName: e.target.value }))}
+                  placeholder="Kovács"
+                  className="w-full bg-[#333842] border border-white/12 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-[#D2F159] placeholder:text-white/30"
+                />
+              </div>
+
+              {/* Last Name */}
+              <div>
+                <label className="text-white/60 text-xs mb-1 block">Keresztnév *</label>
+                <input
+                  type="text"
+                  value={addMemberForm.lastName}
+                  onChange={(e) => setAddMemberForm(prev => ({ ...prev, lastName: e.target.value }))}
+                  placeholder="János"
+                  className="w-full bg-[#333842] border border-white/12 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-[#D2F159] placeholder:text-white/30"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-white/60 text-xs mb-1 block">Email cím</label>
+                <input
+                  type="email"
+                  value={addMemberForm.email}
+                  onChange={(e) => setAddMemberForm(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="pelda@email.com"
+                  className="w-full bg-[#333842] border border-white/12 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-[#D2F159] placeholder:text-white/30"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="text-white/60 text-xs mb-1 block">Telefonszám</label>
+                <input
+                  type="tel"
+                  value={addMemberForm.phone}
+                  onChange={(e) => setAddMemberForm(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="+36 30 123 4567"
+                  className="w-full bg-[#333842] border border-white/12 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-[#D2F159] placeholder:text-white/30"
+                />
+              </div>
+
+              {/* Guardian */}
+              <div>
+                <label className="text-white/60 text-xs mb-1 block">Törvényes képviselő</label>
+                <input
+                  type="text"
+                  value={addMemberForm.guardian}
+                  onChange={(e) => setAddMemberForm(prev => ({ ...prev, guardian: e.target.value }))}
+                  placeholder="18 év alatti tag esetén"
+                  className="w-full bg-[#333842] border border-white/12 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-[#D2F159] placeholder:text-white/30"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setIsAddMemberOpen(false)
+                  setAddMemberForm({ firstName: "", lastName: "", email: "", phone: "", guardian: "" })
+                }}
+                className="flex-1 py-3 rounded-full border border-white/20 text-white text-sm font-medium"
+                disabled={addingMember}
+              >
+                Mégse
+              </button>
+              <button
+                onClick={handleAddMember}
+                disabled={addingMember || !addMemberForm.firstName || !addMemberForm.lastName}
+                className="flex-1 py-3 rounded-full bg-[#D2F159] text-[#171725] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {addingMember ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Mentés...
+                  </>
+                ) : (
+                  "Hozzáadás"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
     </div>
   )

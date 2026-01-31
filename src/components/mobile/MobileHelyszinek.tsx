@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { X, MapPin, Users, Phone, Mail, Plus, Loader2, Trash2 } from "lucide-react"
-import { MobileNavbar } from "./MobileNavbar"
 
 interface Location {
   id: string
@@ -554,7 +553,6 @@ export function MobileHelyszinek() {
         </div>
       )}
 
-      <MobileNavbar />
     </div>
     </div>
   )

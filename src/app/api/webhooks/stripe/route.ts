@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
 
       // Payment succeeded
       case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as Stripe.Invoice
+        const invoice = event.data.object as Stripe.Invoice & { subscription?: string | null }
         const subscriptionId = invoice.subscription as string
 
         if (subscriptionId) {
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
 
       // Payment failed
       case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice
+        const invoice = event.data.object as Stripe.Invoice & { subscription?: string | null }
         const subscriptionId = invoice.subscription as string
 
         if (subscriptionId) {

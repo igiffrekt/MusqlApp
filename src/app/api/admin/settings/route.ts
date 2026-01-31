@@ -16,6 +16,7 @@ export async function GET() {
       select: {
         id: true,
         name: true,
+        slug: true,
         settings: true,
         notificationSettings: true,
         monthlyPassPrice: true,
@@ -116,6 +117,7 @@ export async function PATCH(request: NextRequest) {
       select: {
         id: true,
         name: true,
+        slug: true,
         settings: true,
         notificationSettings: true,
         monthlyPassPrice: true,

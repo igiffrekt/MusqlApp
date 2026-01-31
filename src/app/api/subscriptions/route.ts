@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       return authResult.response
     }
 
-    const { organizationId, userId } = authResult
+    const { organizationId } = authResult; const userId = authResult.user.id
     const { licenseTier, currency = 'EUR' } = await request.json()
 
     if (!licenseTier || !['STARTER', 'PROFESSIONAL', 'ENTERPRISE'].includes(licenseTier)) {

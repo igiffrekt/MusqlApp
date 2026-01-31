@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import DashboardPage from './(dashboard)/page'
 import LandingPage from '@/components/landing/LandingPage'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 
 export default async function HomePage() {
   const session = await auth()
@@ -30,7 +31,7 @@ export default async function HomePage() {
 
     // If setup not completed, redirect to subscribe
     if (!organization?.setupCompletedAt) {
-      redirect('/subscribe')
+      redirect('/auth/start-trial-v2')
     }
 
     // Check if subscription is valid (TRIAL or ACTIVE)
@@ -47,8 +48,12 @@ export default async function HomePage() {
       }
     }
 
-    // Valid subscription - show dashboard
-    return <DashboardPage />
+    // Valid subscription - show dashboard with layout
+    return (
+      <DashboardLayout>
+        <DashboardPage />
+      </DashboardLayout>
+    )
   }
 
   // Logged in but no organization - go to setup

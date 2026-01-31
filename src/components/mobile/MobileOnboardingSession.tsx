@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Calendar as CalendarIcon, Clock, MapPin, Repeat, Loader2, ChevronLeft } from "lucide-react"
-import { TimeInput24h } from "@/components/ui/TimeInput24h"
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -16,6 +15,122 @@ interface MobileOnboardingSessionProps {
   locationName: string
   onBack: () => void
   onComplete?: () => void
+}
+
+// TimePicker component for modal time selection
+function TimePicker({ value, onChange, disabled = false }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [tempHours, setTempHours] = useState(0)
+  const [tempMinutes, setTempMinutes] = useState(0)
+  const [hours, minutes] = (value || "00:00").split(":").map(Number)
+  const hoursRef = useRef<HTMLDivElement>(null)
+  const minutesRef = useRef<HTMLDivElement>(null)
+
+  const openPicker = () => {
+    if (disabled) return
+    setTempHours(hours || 0)
+    setTempMinutes(minutes || 0)
+    setIsOpen(true)
+  }
+
+  const confirmTime = () => {
+    onChange(`${tempHours.toString().padStart(2, "0")}:${tempMinutes.toString().padStart(2, "0")}`)
+    setIsOpen(false)
+  }
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        hoursRef.current?.children[tempHours]?.scrollIntoView({ block: "center", behavior: "instant" })
+        minutesRef.current?.children[Math.floor(tempMinutes / 5)]?.scrollIntoView({ block: "center", behavior: "instant" })
+      }, 50)
+    }
+  }, [isOpen, tempHours, tempMinutes])
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openPicker}
+        disabled={disabled}
+        className="w-full bg-[#252a32] text-white rounded-xl px-4 py-4 text-base text-left flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-[#D2F159] transition-all disabled:opacity-50"
+      >
+        <Clock className="w-5 h-5 text-white/40" />
+        <span className={value ? "text-white" : "text-white/40"}>{value || "00:00"}</span>
+      </button>
+      
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-6" onClick={() => setIsOpen(false)}>
+          <div 
+            className="bg-[#252a32]/80 backdrop-blur-xl rounded-3xl p-8 border border-white/10 w-full max-w-xs shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-white text-center text-lg font-semibold mb-8">Válassz időpontot</h3>
+            
+            <div className="flex justify-center gap-6 mb-8">
+              <div className="flex flex-col items-center">
+                <span className="text-white/40 text-xs mb-2">Óra</span>
+                <div 
+                  ref={hoursRef}
+                  className="h-40 w-16 overflow-y-auto scrollbar-thin bg-[#1a1f26] rounded-xl"
+                >
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setTempHours(i)}
+                      className={cn(
+                        "block w-full py-2.5 text-center text-lg font-medium transition-colors",
+                        tempHours === i 
+                          ? "bg-[#D2F159] text-[#171725]" 
+                          : "text-white hover:bg-white/10"
+                      )}
+                    >
+                      {i.toString().padStart(2, "0")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex items-center text-white text-3xl font-bold pt-6">:</div>
+              
+              <div className="flex flex-col items-center">
+                <span className="text-white/40 text-xs mb-2">Perc</span>
+                <div 
+                  ref={minutesRef}
+                  className="h-40 w-16 overflow-y-auto scrollbar-thin bg-[#1a1f26] rounded-xl"
+                >
+                  {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setTempMinutes(m)}
+                      className={cn(
+                        "block w-full py-2.5 text-center text-lg font-medium transition-colors",
+                        tempMinutes === m 
+                          ? "bg-[#D2F159] text-[#171725]" 
+                          : "text-white hover:bg-white/10"
+                      )}
+                    >
+                      {m.toString().padStart(2, "0")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <button
+              type="button"
+              onClick={confirmTime}
+              className="w-full bg-[#D2F159] text-[#171725] rounded-xl py-3 font-semibold"
+            >
+              Rendben
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  )
 }
 
 export function MobileOnboardingSession({ locationId, locationName, onBack, onComplete }: MobileOnboardingSessionProps) {
@@ -226,33 +341,27 @@ export function MobileOnboardingSession({ locationId, locationName, onBack, onCo
             </Popover>
           </div>
 
-          {/* Time fields with 24h format */}
+          {/* Time fields with modal picker */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-white/60 text-sm block mb-2">
                 Kezdés *
               </label>
-              <div className="flex items-center bg-[#252a32] rounded-xl px-4 py-4">
-                <Clock className="w-5 h-5 text-white/40 mr-3" />
-                <TimeInput24h
-                  value={startTime}
-                  onChange={setStartTime}
-                  disabled={loading}
-                />
-              </div>
+              <TimePicker
+                value={startTime}
+                onChange={setStartTime}
+                disabled={loading}
+              />
             </div>
             <div>
               <label className="text-white/60 text-sm block mb-2">
                 Befejezés *
               </label>
-              <div className="flex items-center bg-[#252a32] rounded-xl px-4 py-4">
-                <Clock className="w-5 h-5 text-white/40 mr-3" />
-                <TimeInput24h
-                  value={endTime}
-                  onChange={setEndTime}
-                  disabled={loading}
-                />
-              </div>
+              <TimePicker
+                value={endTime}
+                onChange={setEndTime}
+                disabled={loading}
+              />
             </div>
           </div>
 

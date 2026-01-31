@@ -100,7 +100,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4 pt-20">
+      <div className="flex-1 flex flex-col justify-start p-4 pt-16 lg:pt-20 lg:items-center lg:justify-center">
         <div className="w-full max-w-md lg:max-w-lg">
           <AnimatePresence mode="wait">
             {isSplash ? (

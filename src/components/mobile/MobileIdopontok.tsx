@@ -6,7 +6,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { Calendar, Clock, MapPin, Users, ChevronRight, Loader2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { MobileNavbar } from "./MobileNavbar"
 
 interface Session {
   id: string
@@ -530,7 +529,6 @@ export function MobileIdopontok() {
         </div>
       )}
 
-      <MobileNavbar />
     </div>
     </div>
   )

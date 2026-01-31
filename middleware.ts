@@ -13,12 +13,14 @@ export async function middleware(request: NextRequest) {
     '/api/organizations/lookup',
     '/api/subscribe',
     '/api/webhooks',
+    '/api/join-requests',
     '/_next',
     '/favicon.ico',
     '/manifest.json',
     '/sw.js',
     '/pwa-icons',
     '/icons',
+    '/fonts',
     '/img',
     '/adatvedelem',
     '/impresszum',
@@ -52,21 +54,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(onboardingUrl)
   }
   
-  // For authenticated users accessing dashboard routes, we need to check subscription
-  // This is handled in the page/layout level since middleware can't easily fetch from DB
-  // The root layout or dashboard layout will check subscription status
-  
   return NextResponse.next()
 }
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * Match all request paths except for static files
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|fonts|icons|img|pwa-icons|manifest.json|sw.js|robots.txt|sitemap.xml).*)',
   ],
 }

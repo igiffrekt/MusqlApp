@@ -9,6 +9,7 @@ export type LicenseTier = PrismaLicenseTier
 // License tier enum values (for use in code that needs the actual values)
 export const LicenseTierValues = {
   STARTER: "STARTER" as const,
+  PRO: "PRO" as const,
   PROFESSIONAL: "PROFESSIONAL" as const,
   ENTERPRISE: "ENTERPRISE" as const,
 }
@@ -24,7 +25,7 @@ export const TIER_FEATURES: Record<LicenseTier, TierConfig> = {
       studentManagement: true,
       sessionScheduling: true,
       basicAttendance: true,
-      paymentTracking: false, // Offline only
+      paymentTracking: false,
       stripePayments: false,
       smsNotifications: false,
       emailNotifications: true,
@@ -45,11 +46,41 @@ export const TIER_FEATURES: Record<LicenseTier, TierConfig> = {
       maxPaymentsPerMonth: 50,
     },
   },
+  PRO: {
+    name: "Pro",
+    price: 49,
+    maxStudents: 30,
+    maxTrainers: 5,
+    features: {
+      studentManagement: true,
+      sessionScheduling: true,
+      basicAttendance: true,
+      paymentTracking: true,
+      stripePayments: false,
+      smsNotifications: false,
+      emailNotifications: true,
+      pushNotifications: true,
+      advancedReports: false,
+      multiLocation: false,
+      customBranding: false,
+      apiAccess: false,
+      prioritySupport: false,
+      studentProgress: false,
+      eventManagement: false,
+      marketingTools: false,
+    },
+    limitations: {
+      maxStudents: 30,
+      maxTrainers: 5,
+      maxSessionsPerMonth: 100,
+      maxPaymentsPerMonth: 100,
+    },
+  },
   PROFESSIONAL: {
     name: "Professional",
     price: 79,
     maxStudents: 100,
-    maxTrainers: -1, // Unlimited
+    maxTrainers: -1,
     features: {
       studentManagement: true,
       sessionScheduling: true,
@@ -70,7 +101,7 @@ export const TIER_FEATURES: Record<LicenseTier, TierConfig> = {
     },
     limitations: {
       maxStudents: 100,
-      maxTrainers: -1, // Unlimited
+      maxTrainers: -1,
       maxSessionsPerMonth: 500,
       maxPaymentsPerMonth: 200,
     },
@@ -78,8 +109,8 @@ export const TIER_FEATURES: Record<LicenseTier, TierConfig> = {
   ENTERPRISE: {
     name: "Enterprise",
     price: 199,
-    maxStudents: -1, // Unlimited
-    maxTrainers: -1, // Unlimited
+    maxStudents: -1,
+    maxTrainers: -1,
     features: {
       studentManagement: true,
       sessionScheduling: true,
@@ -99,10 +130,10 @@ export const TIER_FEATURES: Record<LicenseTier, TierConfig> = {
       marketingTools: true,
     },
     limitations: {
-      maxStudents: -1, // Unlimited
-      maxTrainers: -1, // Unlimited
-      maxSessionsPerMonth: -1, // Unlimited
-      maxPaymentsPerMonth: -1, // Unlimited
+      maxStudents: -1,
+      maxTrainers: -1,
+      maxSessionsPerMonth: -1,
+      maxPaymentsPerMonth: -1,
     },
   },
 }
@@ -159,7 +190,7 @@ export async function canUpgradeTier(targetTier: LicenseTier): Promise<boolean> 
     const currentTierData = await getCurrentTier()
     if (!currentTierData.tier) return false
 
-    const tierHierarchy: LicenseTier[] = ["STARTER", "PROFESSIONAL", "ENTERPRISE"]
+    const tierHierarchy: LicenseTier[] = ["STARTER", "PRO", "PROFESSIONAL", "ENTERPRISE"]
     const currentIndex = tierHierarchy.indexOf(currentTierData.tier)
     const targetIndex = tierHierarchy.indexOf(targetTier)
 
@@ -181,7 +212,7 @@ export function getUpgradeBenefits(currentTier: LicenseTier, targetTier: License
   return {
     newFeatures,
     priceDifference: TIER_FEATURES[targetTier].price - TIER_FEATURES[currentTier].price,
-    additionalStudents: targetTier === "PROFESSIONAL" ? 75 : -1, // Unlimited for Enterprise
+    additionalStudents: targetTier === "PROFESSIONAL" ? 75 : -1,
     additionalTrainers: targetTier === "ENTERPRISE" ? -1 : (targetTier === "PROFESSIONAL" ? -1 : 0),
   }
 }

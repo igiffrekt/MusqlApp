@@ -249,6 +249,7 @@ model Payment {
   paymentMethod         PaymentMethod @default(CASH)
   stripePaymentIntentId String?
   notes                 String?
+  validUntil            DateTime?     // When this pass/membership expires
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
   paymentPlan           PaymentPlan?  @relation(fields: [paymentPlanId], references: [id])
@@ -301,8 +302,9 @@ model Notification {
   title     String
   message   String
   type      NotificationType @default(INFO)
-  read      Boolean          @default(false)
-  actionUrl String?
+  read          Boolean          @default(false)
+  shownAsPopup  Boolean          @default(false)
+  actionUrl     String?
   createdAt DateTime         @default(now())
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 

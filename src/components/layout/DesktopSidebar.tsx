@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { useSidebar } from "@/contexts/SidebarContext"
 import {
   Home,
   Calendar,
@@ -26,6 +26,7 @@ import {
   Shield,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useUserProfile } from "@/contexts/UserProfileContext"
 
 interface NavItem {
   label: string
@@ -57,13 +58,14 @@ const adminNavItems: NavItem[] = [
 ]
 
 export function DesktopSidebar() {
-  const [collapsed, setCollapsed] = useState(false)
+  const { collapsed, setCollapsed, sidebarWidth } = useSidebar()
   const pathname = usePathname()
   const router = useRouter()
   const { data: session } = useSession()
+  const { image: profileImage } = useUserProfile()
 
   const userRole = session?.user?.role || "STUDENT"
-  const isAdmin = userRole === "ADMIN"
+  const isSuperAdmin = userRole === "SUPER_ADMIN"
   const userName = session?.user?.name || "Felhasználó"
   const userEmail = session?.user?.email || ""
 
@@ -93,7 +95,7 @@ export function DesktopSidebar() {
   return (
     <motion.aside
       initial={false}
-      animate={{ width: collapsed ? 80 : 280 }}
+      animate={{ width: sidebarWidth }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="fixed left-0 top-0 h-screen bg-[#252a32] border-r border-white/5 flex flex-col z-40 font-lufga"
     >
@@ -109,11 +111,11 @@ export function DesktopSidebar() {
                 exit={{ opacity: 0 }}
               >
                 <Image
-                  src="/img/musql_ikon.png"
+                  src="/img/musql_logo.png"
                   alt="Musql"
-                  width={44}
-                  height={44}
-                  className="flex-shrink-0 rounded-xl"
+                  width={40}
+                  height={40}
+                  className="flex-shrink-0 object-contain"
                 />
               </motion.div>
             ) : (
@@ -185,7 +187,7 @@ export function DesktopSidebar() {
         </div>
 
         {/* Admin Section */}
-        {isAdmin && (
+        {isSuperAdmin && (
           <>
             <div className="my-6 px-4">
               <div className="h-px bg-white/10" />
@@ -277,7 +279,7 @@ export function DesktopSidebar() {
           onClick={() => router.push("/fiok")}
         >
           <Avatar className="h-11 w-11 border-2 border-[#D2F159]/30">
-            <AvatarImage src={session?.user?.image || ""} />
+            <AvatarImage src={profileImage || ""} />
             <AvatarFallback className="bg-[#D2F159] text-[#171725] font-semibold">
               {getInitials(userName)}
             </AvatarFallback>

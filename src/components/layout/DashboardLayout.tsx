@@ -5,9 +5,31 @@ import { motion } from "framer-motion"
 import { MobileNavigation } from "@/components/mobile/MobileNavigation"
 import { DesktopSidebar } from "@/components/layout/DesktopSidebar"
 import { DesktopHeader } from "@/components/layout/DesktopHeader"
+import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext"
 
 interface DashboardLayoutProps {
   children: ReactNode
+}
+
+function DesktopContent({ children }: { children: ReactNode }) {
+  const { sidebarWidth } = useSidebar()
+  
+  return (
+    <>
+      <DesktopSidebar />
+      <DesktopHeader />
+      <motion.main
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1, marginLeft: sidebarWidth }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="pt-20 min-h-screen"
+      >
+        <div className="p-8 max-w-7xl">
+          {children}
+        </div>
+      </motion.main>
+    </>
+  )
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -28,7 +50,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-[#171725] font-lufga">
-        <div className="pb-20 lg:pb-0">{children}</div>
+        {children}
       </div>
     )
   }
@@ -37,25 +59,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="min-h-screen bg-[#171725] font-lufga">
       {/* Desktop Layout */}
       {!isMobile && (
-        <>
-          <DesktopSidebar />
-          <DesktopHeader />
-          <motion.main
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="ml-[280px] pt-20 min-h-screen"
-          >
-            <div className="p-8">
-              {children}
-            </div>
-          </motion.main>
-        </>
+        <SidebarProvider>
+          <DesktopContent>{children}</DesktopContent>
+        </SidebarProvider>
       )}
 
       {/* Mobile Layout */}
       {isMobile && (
         <>
-          <main className="pb-24">
+          <main>
             {children}
           </main>
           <MobileNavigation />

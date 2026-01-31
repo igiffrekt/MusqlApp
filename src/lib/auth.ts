@@ -60,9 +60,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: user.name,
             image: user.image,
             role: user.role,
-            organizationId: user.organizationId,
+            organizationId: user.organizationId ?? undefined,
             organization: user.organization,
-          }
+          } as any
         } catch (error) {
           console.error("Auth error:", error instanceof Error ? error.message : error)
           return null
@@ -142,7 +142,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           })
           if (dbUser) {
             token.userRole = dbUser.role
-            token.organizationId = dbUser.organizationId
+            token.organizationId = dbUser.organizationId ?? undefined
             token.organization = dbUser.organization
             console.log("[JWT] Loaded from DB:", dbUser.email, "orgId:", dbUser.organizationId)
           }

@@ -6,7 +6,6 @@ import Image from "next/image"
 import { ChevronLeft, Camera, User, Mail, Phone, Users, Plus, Check, X, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMembersStore } from "@/lib/stores/members-store"
-import { MobileNavbar } from "./MobileNavbar"
 
 interface Group {
   id: string
@@ -423,7 +422,6 @@ export function MobileTagfelvetel() {
         </div>
       )}
 
-      <MobileNavbar />
     </div>
     </div>
   )

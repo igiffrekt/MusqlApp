@@ -138,7 +138,7 @@ export async function GET() {
       ...recentPayments.map((payment) => ({
         id: `payment-${payment.id}`,
         type: "payment" as const,
-        description: `Payment from ${payment.student.firstName} ${payment.student.lastName} (${payment.student.organization.name})`,
+        description: `Payment from ${payment.student.firstName} ${payment.student.lastName} (${payment.student.organization?.name || "Unknown"})`,
         timestamp: payment.paidDate?.toISOString() || new Date().toISOString(),
         amount: payment.amount,
       })),

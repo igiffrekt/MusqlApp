@@ -2,6 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { sendEmail } from '@/lib/notifications'
 
+// Retry wrapper for Neon cold start issues
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  delay = 1000
+): Promise<T> {
+  let lastError: Error | null = null
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error as Error
+      const isRetryable = 
+        error instanceof Error && 
+        (error.message.includes('Control plane') || 
+         error.message.includes('connection') ||
+         error.message.includes('timeout'))
+      
+      if (!isRetryable || i === retries - 1) {
+        throw error
+      }
+      
+      console.log(`DB query failed, retrying (${i + 1}/${retries})...`, error)
+      await new Promise(resolve => setTimeout(resolve, delay * (i + 1)))
+    }
+  }
+  throw lastError
+}
+
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -13,20 +42,22 @@ export async function POST(request: NextRequest) {
 
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
     
-    // Simplified query - find orgs that need reminders
-    const pendingOrgs = await prisma.organization.findMany({
-      where: {
-        setupToken: { not: null },
-        setupCompletedAt: null,
-        createdAt: { lt: oneHourAgo },
-      },
-      include: {
-        users: {
-          where: { role: 'ADMIN' },
-          take: 1,
+    // Query with retry for Neon cold start
+    const pendingOrgs = await withRetry(() => 
+      prisma.organization.findMany({
+        where: {
+          setupToken: { not: null },
+          setupCompletedAt: null,
+          createdAt: { lt: oneHourAgo },
         },
-      },
-    })
+        include: {
+          users: {
+            where: { role: 'ADMIN' },
+            take: 1,
+          },
+        },
+      })
+    )
 
     // If no pending orgs, return early
     if (pendingOrgs.length === 0) {
@@ -130,27 +161,31 @@ export async function GET(request: NextRequest) {
   const orgId = request.nextUrl.searchParams.get('orgId')
   
   if (!orgId) {
-    // Return stats
+    // Return stats with retry
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-    const count = await prisma.organization.count({
-      where: {
-        setupToken: { not: null },
-        setupCompletedAt: null,
-        createdAt: { lt: oneHourAgo },
-      },
-    })
+    const count = await withRetry(() => 
+      prisma.organization.count({
+        where: {
+          setupToken: { not: null },
+          setupCompletedAt: null,
+          createdAt: { lt: oneHourAgo },
+        },
+      })
+    )
     return NextResponse.json({ pendingOrganizations: count })
   }
 
-  const org = await prisma.organization.findUnique({
-    where: { id: orgId },
-    include: {
-      users: {
-        where: { role: 'ADMIN' },
-        take: 1,
+  const org = await withRetry(() =>
+    prisma.organization.findUnique({
+      where: { id: orgId },
+      include: {
+        users: {
+          where: { role: 'ADMIN' },
+          take: 1,
+        },
       },
-    },
-  })
+    })
+  )
 
   if (!org) {
     return NextResponse.json({ error: 'Organization not found' }, { status: 404 })

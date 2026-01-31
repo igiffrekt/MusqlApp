@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     }
 
     // Only admins can export data
-    if (authResult.user.role !== "ADMIN") {
+    if (authResult.user.role !== "ADMIN" && authResult.user.role !== "SUPER_ADMIN") {
       return NextResponse.json(
         { error: "Csak adminisztrátorok exportálhatnak adatokat" },
         { status: 403 }
@@ -44,16 +44,14 @@ export async function GET(request: Request) {
         where: { organizationId },
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           email: true,
           phone: true,
           dateOfBirth: true,
           status: true,
-          joinedAt: true,
-          parentName: true,
-          parentPhone: true,
-          parentEmail: true,
-          notes: true,
+          beltLevel: true,
+          emergencyContact: true,
           createdAt: true,
           groups: {
             select: {
@@ -70,7 +68,8 @@ export async function GET(request: Request) {
           id: true,
           name: true,
           description: true,
-          color: true,
+          dailyFee: true,
+          monthlyFee: true,
           createdAt: true,
         },
       }),
@@ -83,24 +82,19 @@ export async function GET(request: Request) {
           endTime: true,
           status: true,
           capacity: true,
-          location: {
-            select: { name: true },
-          },
-          group: {
-            select: { name: true },
-          },
+          location: true,
           attendances: {
             select: {
               student: {
-                select: { name: true },
+                select: { firstName: true, lastName: true },
               },
               status: true,
-              checkedInAt: true,
+              createdAt: true,
             },
           },
         },
         orderBy: { startTime: "desc" },
-        take: 1000, // Limit to last 1000 sessions
+        take: 1000,
       }),
       prisma.payment.findMany({
         where: {
@@ -109,19 +103,19 @@ export async function GET(request: Request) {
         select: {
           id: true,
           amount: true,
-          currency: true,
           status: true,
           paymentMethod: true,
-          description: true,
+          paymentType: true,
+          notes: true,
           dueDate: true,
-          paidAt: true,
+          paidDate: true,
           createdAt: true,
           student: {
-            select: { name: true },
+            select: { firstName: true, lastName: true },
           },
         },
         orderBy: { createdAt: "desc" },
-        take: 1000, // Limit to last 1000 payments
+        take: 1000,
       }),
       prisma.location.findMany({
         where: { organizationId },
@@ -144,32 +138,64 @@ export async function GET(request: Request) {
       }),
     ])
 
+    // Parse emergency contact for guardian info
+    const transformedStudents = students.map((s) => {
+      let guardian = { name: "", phone: "", email: "" }
+      if (s.emergencyContact) {
+        try {
+          const contact = JSON.parse(s.emergencyContact as string)
+          guardian = {
+            name: contact.name || "",
+            phone: contact.phone || "",
+            email: contact.email || "",
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+      return {
+        id: s.id,
+        name: `${s.firstName} ${s.lastName}`,
+        firstName: s.firstName,
+        lastName: s.lastName,
+        email: s.email,
+        phone: s.phone,
+        dateOfBirth: s.dateOfBirth,
+        status: s.status,
+        beltLevel: s.beltLevel,
+        createdAt: s.createdAt,
+        groups: s.groups.map((g) => g.group.name),
+        guardianName: guardian.name,
+        guardianPhone: guardian.phone,
+        guardianEmail: guardian.email,
+      }
+    })
+
     const exportData = {
       exportDate: new Date().toISOString(),
       organization,
-      students: students.map((s) => ({
-        ...s,
-        groups: s.groups.map((g) => g.group.name),
-      })),
+      students: transformedStudents,
       groups,
       sessions: sessions.map((s) => ({
         ...s,
-        location: s.location?.name || null,
-        group: s.group?.name || null,
+        location: s.location || null,
         attendances: s.attendances.map((a) => ({
-          studentName: a.student.name,
+          studentName: `${a.student.firstName} ${a.student.lastName}`,
           status: a.status,
-          checkedInAt: a.checkedInAt,
+          checkedInAt: a.createdAt,
         })),
       })),
       payments: payments.map((p) => ({
         ...p,
-        studentName: p.student.name,
+        studentName: `${p.student.firstName} ${p.student.lastName}`,
       })),
       locations,
       users: users.map((u) => ({
-        ...u,
-        // Don't export sensitive data
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        createdAt: u.createdAt,
       })),
     }
 
@@ -177,30 +203,34 @@ export async function GET(request: Request) {
       // Generate CSV for students (most common export need)
       const csvHeaders = [
         "Név",
+        "Vezetéknév",
+        "Keresztnév",
         "Email",
         "Telefon",
         "Születési dátum",
         "Státusz",
+        "Öv fokozat",
         "Csatlakozás",
         "Csoportok",
-        "Szülő neve",
-        "Szülő telefon",
-        "Szülő email",
-        "Megjegyzés",
+        "Gondviselő neve",
+        "Gondviselő telefon",
+        "Gondviselő email",
       ]
 
-      const csvRows = exportData.students.map((s) => [
+      const csvRows = transformedStudents.map((s) => [
         s.name,
+        s.firstName,
+        s.lastName,
         s.email || "",
         s.phone || "",
         s.dateOfBirth ? new Date(s.dateOfBirth).toLocaleDateString("hu-HU") : "",
         s.status,
-        s.joinedAt ? new Date(s.joinedAt).toLocaleDateString("hu-HU") : "",
+        s.beltLevel || "",
+        s.createdAt ? new Date(s.createdAt).toLocaleDateString("hu-HU") : "",
         s.groups.join(", "),
-        s.parentName || "",
-        s.parentPhone || "",
-        s.parentEmail || "",
-        s.notes || "",
+        s.guardianName,
+        s.guardianPhone,
+        s.guardianEmail,
       ])
 
       const csvContent = [

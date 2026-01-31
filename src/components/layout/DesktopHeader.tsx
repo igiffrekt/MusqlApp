@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { useSidebar } from "@/contexts/SidebarContext"
 import {
   Search,
   Bell,
@@ -15,9 +16,7 @@ import {
   ChevronRight,
   X,
 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 
-// Breadcrumb mapping
 const breadcrumbMap: Record<string, string> = {
   "": "Főoldal",
   "idopontok": "Időpontok",
@@ -43,16 +42,14 @@ const breadcrumbMap: Record<string, string> = {
 export function DesktopHeader() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [showNotifDropdown, setShowNotifDropdown] = useState(false)
-  const [showQuickActions, setShowQuickActions] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const { data: session } = useSession()
+  const { sidebarWidth } = useSidebar()
 
   const userRole = session?.user?.role || "STUDENT"
   const isAdmin = userRole === "ADMIN" || userRole === "TRAINER"
 
-  // Generate breadcrumbs from pathname
   const pathSegments = pathname.split("/").filter(Boolean)
   const breadcrumbs = pathSegments.map((segment, index) => {
     const path = "/" + pathSegments.slice(0, index + 1).join("/")
@@ -60,22 +57,20 @@ export function DesktopHeader() {
     return { label, path }
   })
 
-  // Quick actions for admin/trainer
   const quickActions = [
     { label: "Új edzés", icon: Calendar, action: () => router.push("/trainer/sessions"), color: "#D2F159" },
     { label: "Új tag", icon: Users, action: () => router.push("/tagfelvetel"), color: "#1ad598" },
     { label: "Fizetés rögzítése", icon: CreditCard, action: () => router.push("/trainer/payments"), color: "#f59e0b" },
   ]
-
-  // Mock notifications
-  const notifications = [
-    { id: 1, title: "Új tag csatlakozott", desc: "Kiss Péter csatlakozott a csoporthoz", time: "5 perce" },
-    { id: 2, title: "Fizetés beérkezett", desc: "10.000 Ft befizetés rögzítve", time: "1 órája" },
-    { id: 3, title: "Edzés emlékeztető", desc: "Holnap 10:00-kor kezdődik az edzés", time: "2 órája" },
-  ]
+  const [showQuickActions, setShowQuickActions] = useState(false)
 
   return (
-    <header className="fixed top-0 right-0 left-[280px] h-20 bg-[#252a32]/80 backdrop-blur-xl border-b border-white/5 z-30 flex items-center justify-between px-8 font-lufga">
+    <motion.header
+      initial={false}
+      animate={{ left: sidebarWidth }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="fixed top-0 right-0 h-20 bg-[#252a32]/80 backdrop-blur-xl border-b border-white/5 z-30 flex items-center justify-between px-8 font-lufga"
+    >
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2">
         <button
@@ -204,67 +199,14 @@ export function DesktopHeader() {
           </div>
         )}
 
-        {/* Notifications */}
-        <div className="relative">
-          <button
-            onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-            className="relative w-11 h-11 flex items-center justify-center text-white/50 hover:text-white hover:bg-[#333842] rounded-2xl transition-colors"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 bg-[#ea3a3d] text-white text-xs font-bold rounded-full flex items-center justify-center px-1">
-              3
-            </span>
-          </button>
-
-          <AnimatePresence>
-            {showNotifDropdown && (
-              <>
-                <div 
-                  className="fixed inset-0 z-40" 
-                  onClick={() => setShowNotifDropdown(false)} 
-                />
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-80 bg-[#333842] border border-white/10 rounded-2xl shadow-xl overflow-hidden z-50"
-                >
-                  <div className="p-4 border-b border-white/5 flex items-center justify-between">
-                    <span className="text-white font-semibold">Értesítések</span>
-                    <Badge className="bg-[#ea3a3d]/20 text-[#ea3a3d] border-0 hover:bg-[#ea3a3d]/30">
-                      3 új
-                    </Badge>
-                  </div>
-                  <div className="max-h-72 overflow-y-auto">
-                    {notifications.map((notif) => (
-                      <button
-                        key={notif.id}
-                        className="w-full flex flex-col items-start gap-1 p-4 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
-                      >
-                        <span className="font-medium text-sm text-white">{notif.title}</span>
-                        <span className="text-xs text-white/50">{notif.desc}</span>
-                        <span className="text-xs text-white/30">{notif.time}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="p-3 border-t border-white/5">
-                    <button
-                      onClick={() => {
-                        router.push("/ertesitesek")
-                        setShowNotifDropdown(false)
-                      }}
-                      className="w-full py-2 text-center text-[#D2F159] text-sm font-medium hover:bg-white/5 rounded-xl transition-colors"
-                    >
-                      Összes értesítés
-                    </button>
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
-        </div>
+        {/* Notifications - link to notifications page */}
+        <button
+          onClick={() => router.push("/ertesitesek")}
+          className="relative w-11 h-11 flex items-center justify-center text-white/50 hover:text-white hover:bg-[#333842] rounded-2xl transition-colors"
+        >
+          <Bell className="h-5 w-5" />
+        </button>
       </div>
-    </header>
+    </motion.header>
   )
 }

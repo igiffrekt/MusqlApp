@@ -250,7 +250,7 @@ export async function notifySessionReminder(sessionId: string) {
             <li><strong>Helyszín:</strong> ${session.location || "Később közöljük"}</li>
           </ul>
           <p>Várunk szeretettel!</p>
-          <p>${session.organization.name}</p>
+          <p>${session.organization?.name || "Az edzésstúdió"}</p>
         `
 
         await sendEmail({

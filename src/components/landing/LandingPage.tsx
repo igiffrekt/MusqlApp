@@ -9,7 +9,8 @@ import {
   BarChart3, Smartphone,
   CheckCircle2, ArrowRight, 
   ChevronRight, User, Crown, Building2,
-  MessageSquare, FileText, Clock, MapPin
+  MessageSquare, FileText, Clock, MapPin,
+  ChevronDown, HelpCircle, Shield, Zap
 } from "lucide-react"
 import { ContainerScroll } from "@/components/ui/container-scroll-animation"
 import { Pricing } from "@/components/ui/pricing"
@@ -65,6 +66,39 @@ const FeatureCard = ({ icon: Icon, title, description, index }: { icon: any, tit
   )
 }
 
+// FAQ Item component
+const FAQItem = ({ question, answer, index }: { question: string, answer: string, index: number }) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-50px" })
+  
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+      className="border-b border-gray-200 last:border-0"
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full py-5 flex items-center justify-between text-left hover:text-gray-600 transition-colors"
+      >
+        <span className="font-medium text-gray-900 pr-4">{question}</span>
+        <ChevronDown className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      <motion.div
+        initial={false}
+        animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        className="overflow-hidden"
+      >
+        <p className="pb-5 text-gray-600 leading-relaxed">{answer}</p>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 // Pricing data
 const MONTHLY_PRICES = {
   STARTER: 9900,
@@ -105,105 +139,42 @@ const TIER_FEATURES = {
   ],
 }
 
-// Pricing card component
-const PricingCard = ({ 
-  tier, 
-  name, 
-  description, 
-  isPopular, 
-  billingPeriod,
-  index 
-}: { 
-  tier: keyof typeof MONTHLY_PRICES
-  name: string
-  description: string
-  isPopular: boolean
-  billingPeriod: "monthly" | "annual"
-  index: number
-}) => {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-50px" })
-  
-  const monthlyPrice = MONTHLY_PRICES[tier]
-  const annualTotal = getAnnualPrice(tier)
-  const effectiveMonthly = billingPeriod === "annual" ? Math.round(annualTotal / 12) : monthlyPrice
-  const yearlySaving = monthlyPrice * 12 - annualTotal
-  
-  const Icon = tier === "STARTER" ? User : tier === "PROFESSIONAL" ? Crown : Building2
-  
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
-      className={`relative p-8 rounded-2xl transition-all duration-300 ${
-        isPopular 
-          ? 'bg-gray-900 text-white shadow-xl' 
-          : 'bg-white border border-gray-200'
-      }`}
-    >
-      {isPopular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="px-3 py-1 bg-[#D2F159] text-gray-900 text-xs font-bold rounded-full flex items-center gap-1">
-            <Crown className="w-3 h-3" /> Legnépszerűbb
-          </span>
-        </div>
-      )}
-      
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-          isPopular ? 'bg-[#D2F159]' : 'bg-gray-100'
-        }`}>
-          <Icon className={`w-5 h-5 ${isPopular ? 'text-gray-900' : 'text-gray-700'}`} />
-        </div>
-        <div>
-          <h3 className={`font-bold ${isPopular ? 'text-white' : 'text-gray-900'}`}>{name}</h3>
-          <p className={`text-xs ${isPopular ? 'text-gray-300' : 'text-gray-600'}`}>{description}</p>
-        </div>
-      </div>
-      
-      <div className="mb-4">
-        <span className={`text-3xl font-bold ${isPopular ? 'text-white' : 'text-gray-900'}`}>
-          {effectiveMonthly.toLocaleString('hu-HU')} Ft
-        </span>
-        <span className={`text-sm ${isPopular ? 'text-gray-300' : 'text-gray-600'}`}>/hó</span>
-        {billingPeriod === "annual" && (
-          <div className={`text-sm mt-2 ${isPopular ? 'text-gray-300' : 'text-gray-600'}`}>
-            <div className="line-through text-xs">{monthlyPrice.toLocaleString('hu-HU')} Ft/hó</div>
-            <div className="mt-1">
-              <span className="font-semibold">{annualTotal.toLocaleString('hu-HU')} Ft/év</span>
-              <span className="text-xs ml-1">(előre fizetve)</span>
-            </div>
-            <div className="text-[#D2F159] font-medium mt-1">
-              Megtakarítás: {yearlySaving.toLocaleString('hu-HU')} Ft/év
-            </div>
-          </div>
-        )}
-      </div>
-      
-      <ul className="space-y-2 mb-6">
-        {TIER_FEATURES[tier].map((feature, i) => (
-          <li key={i} className="flex items-center gap-2 text-sm">
-            <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${isPopular ? 'text-[#D2F159]' : 'text-green-600'}`} />
-            <span className={isPopular ? 'text-gray-200' : 'text-gray-700'}>{feature}</span>
-          </li>
-        ))}
-      </ul>
-      
-      <Link
-        href="/auth/signup"
-        className={`block w-full py-3 rounded-xl text-center font-semibold transition-all ${
-          isPopular
-            ? 'bg-[#D2F159] text-gray-900 hover:bg-[#e5ff7a]'
-            : 'bg-gray-900 text-white hover:bg-gray-800'
-        }`}
-      >
-        Próbaidő indítása
-      </Link>
-    </motion.div>
-  )
-}
+// FAQ data
+const FAQ_DATA = [
+  {
+    question: "Mennyibe kerül a próbaidőszak?",
+    answer: "A próbaidőszak teljesen ingyenes, 15 napig. Nem kérünk bankkártya adatokat a regisztrációhoz, így semmilyen rejtett költség nincs. Ha a próbaidőszak végén úgy döntesz, hogy nem folytatod, egyszerűen nem kell semmit tenned."
+  },
+  {
+    question: "Bármikor lemondhatom az előfizetést?",
+    answer: "Igen, az előfizetés bármikor, azonnali hatállyal lemondható. Nincs elköteleződés vagy hosszú távú szerződés. A lemondás után a számlázási időszak végéig még használhatod a rendszert."
+  },
+  {
+    question: "Hogyan működik a tagok csatlakozása?",
+    answer: "Minden szervezet kap egy egyedi kódot. Ezt a kódot megosztod a tagjaiddal, ők pedig ezzel tudnak regisztrálni és csatlakozni. Te eldöntheted, hogy automatikusan elfogadod-e őket, vagy előbb jóvá kell hagynod a csatlakozásukat."
+  },
+  {
+    question: "Mobilon is működik?",
+    answer: "Igen! A Musql egy progresszív webalkalmazás (PWA), ami azt jelenti, hogy bármilyen böngészőből elérhető, és mobilon is tökéletesen működik. Sőt, telepítheted is a kezdőképernyődre, így még gyorsabban éred el."
+  },
+  {
+    question: "Hogyan fogadhatom a befizetéseket online?",
+    answer: "A Prémium és Üzleti csomagokban elérhető a Stripe integráció, amivel bankkártyás fizetést fogadhatsz. A beállítás egyszerű: összekapcsolod a Stripe fiókodat, és máris elfogadhatsz online fizetéseket a tagoktól."
+  },
+  {
+    question: "Van ügyfélszolgálat, ha elakadok?",
+    answer: "Természetesen! Emailben (info@musql.app) és telefonon (+36 20 339 6404) is elérhetőek vagyunk. Az Üzleti csomag esetén prioritásos támogatást biztosítunk, így még gyorsabban segítünk."
+  },
+  {
+    question: "Át tudom vinni a meglévő adataimat?",
+    answer: "Igen, segítünk az adatok importálásában. Ha Excel táblázatban vagy más rendszerben vannak a tagjaid adatai, vedd fel velünk a kapcsolatot és segítünk átvinni őket."
+  },
+  {
+    question: "Biztonságban vannak az adataim?",
+    answer: "Abszolút. Az adatokat titkosítva tároljuk, a rendszer GDPR-kompatibilis, és rendszeres biztonsági mentéseket készítünk. A fizetési adatokat a Stripe kezeli, ami PCI DSS tanúsítvánnyal rendelkezik."
+  },
+]
+
 // Features list
 const features = [
   {
@@ -238,6 +209,25 @@ const features = [
   },
 ]
 
+// Inline CTA component
+const InlineCTA = ({ className = "" }: { className?: string }) => (
+  <RevealSection className={`text-center ${className}`}>
+    <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-6 rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800">
+      <div className="text-left">
+        <p className="text-white font-semibold">Készen állsz kipróbálni?</p>
+        <p className="text-gray-400 text-sm">15 nap ingyen, bankkártya nélkül</p>
+      </div>
+      <Link 
+        href="/auth/signup"
+        className="group px-5 py-2.5 bg-[#D2F159] text-gray-900 font-semibold rounded-full hover:bg-[#e5ff7a] transition-all flex items-center gap-2 whitespace-nowrap"
+      >
+        Kipróbálom
+        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+      </Link>
+    </div>
+  </RevealSection>
+)
+
 export default function LandingPage() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("annual")
 
@@ -247,7 +237,8 @@ export default function LandingPage() {
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-[#D2F159]/15 to-transparent rounded-full blur-3xl" />
       </div>
-{/* Navigation */}
+
+      {/* Navigation */}
       <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-4">
         <div className="bg-white/60 backdrop-blur-2xl border border-white/20 shadow-lg shadow-black/5 rounded-full px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -257,6 +248,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-6">
             <a href="#funkciok" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Funkciók</a>
             <a href="#arak" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Árak</a>
+            <a href="#gyik" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">GYIK</a>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/auth/signin" className="text-gray-600 hover:text-gray-900 text-sm px-3 py-2">
@@ -266,7 +258,7 @@ export default function LandingPage() {
               href="/auth/signup"
               className="px-4 py-2 bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 text-sm"
             >
-              Ingyenes próba
+              Kezdd el ingyen
             </Link>
           </div>
         </div>
@@ -281,8 +273,8 @@ export default function LandingPage() {
             transition={{ duration: 0.5 }}
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gray-200 shadow-sm text-sm mb-6"
           >
-            <div className="w-2 h-2 rounded-full bg-[#D2F159]" />
-            <span className="text-gray-600">Kötöttségek nélkül, 15 napig ingyen!</span>
+            <div className="w-2 h-2 rounded-full bg-[#D2F159] animate-pulse" />
+            <span className="text-gray-600">🎉 15 napos ingyenes próbaidőszak - bankkártya nélkül!</span>
           </motion.div>
           
           <motion.h1 
@@ -314,20 +306,33 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-3 justify-center"
+            className="flex flex-col items-center gap-4"
           >
-            <Link 
-              href="/auth/signup"
-              className="group px-6 py-3 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
-            >
-              Ingyen próba
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link 
+                href="/auth/signup"
+                className="group px-8 py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-all flex items-center justify-center gap-2 text-lg shadow-lg shadow-gray-900/20"
+              >
+                Kipróbálom 15 napig ingyen
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <span className="flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-green-500" />
+                Nem kell bankkártya
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-yellow-500" />
+                2 perc alatt kész
+              </span>
+            </div>
             <a 
               href="#funkciok"
-              className="px-6 py-3 text-gray-600 font-medium hover:text-gray-900 transition-colors"
+              className="text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1 mt-2"
             >
-              Funkció áttekintése
+              Vagy nézd meg a funkciókat
+              <ChevronDown className="w-4 h-4" />
             </a>
           </motion.div>
         </div>
@@ -404,7 +409,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <RevealSection className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-              Segíthetünk?
+              Minden ami kell, egy helyen
             </h2>
             <p className="text-gray-600 max-w-lg mx-auto">
               Edzések, helyszínek, tagok és tagdíjak vezetése, jelenléti ív és sok más, hogy neked csak az edzésre kelljen figyelned!
@@ -416,6 +421,9 @@ export default function LandingPage() {
               <FeatureCard key={feature.title} {...feature} index={i} />
             ))}
           </div>
+
+          {/* CTA after features */}
+          <InlineCTA className="mt-12" />
         </div>
       </section>
 
@@ -435,7 +443,7 @@ export default function LandingPage() {
                 A Musql mobilon is tökéletes. Jelenlét vezetése, új tagok felvétele, 
                 befizetések rögzítése - bárhol, bármikor.
               </p>
-              <ul className="space-y-3">
+              <ul className="space-y-3 mb-8">
                 {["Gyors jelenléti ív frissítés", "Push értesítések választható témákkal", "Átlátható, könnyen kezelhető módon"].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#D2F159] flex items-center justify-center">
@@ -445,6 +453,15 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
+              
+              {/* CTA in mobile section */}
+              <Link 
+                href="/auth/signup"
+                className="group inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-all"
+              >
+                Próbáld ki most
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </RevealSection>
             
             <RevealSection delay={0.1} className="relative">
@@ -541,11 +558,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-{/* Pricing Section */}
+      {/* Pricing Section */}
       <section id="arak">
         <Pricing
-          title="Melyik lesz a neked való?"
-          description="Válassz a hozzád legjobban illő csomagunkból. Ne aggódj, a fizetési mód megadása csak biztonsági okokból kötelező. 15 napig semmit nem vonunk le és ez idő alatt bármikor felmondhatod, kötöttségek nélkül!"
+          title="Válaszd ki a neked való csomagot"
+          description="15 napos ingyenes próbaidőszak minden csomaghoz. Nem kérünk bankkártya adatokat, bármikor felmondható!"
           plans={[
             {
               name: "Alap",
@@ -554,7 +571,7 @@ export default function LandingPage() {
               yearlySaving: MONTHLY_PRICES.STARTER * 12 - getAnnualPrice("STARTER"),
               features: TIER_FEATURES.STARTER,
               description: "Egyéni edzőknek",
-              buttonText: "Próbaidő indítása",
+              buttonText: "Kezdd el ingyen →",
               href: "/auth/signup",
               isPopular: false,
             },
@@ -565,7 +582,7 @@ export default function LandingPage() {
               yearlySaving: MONTHLY_PRICES.PROFESSIONAL * 12 - getAnnualPrice("PROFESSIONAL"),
               features: TIER_FEATURES.PROFESSIONAL,
               description: "Stúdióknak, kluboknak",
-              buttonText: "Próbaidő indítása",
+              buttonText: "Kezdd el ingyen →",
               href: "/auth/signup",
               isPopular: true,
             },
@@ -576,34 +593,76 @@ export default function LandingPage() {
               yearlySaving: MONTHLY_PRICES.ENTERPRISE * 12 - getAnnualPrice("ENTERPRISE"),
               features: TIER_FEATURES.ENTERPRISE,
               description: "Nagyobb szervezeteknek",
-              buttonText: "Próbaidő indítása",
+              buttonText: "Kezdd el ingyen →",
               href: "/auth/signup",
               isPopular: false,
             },
           ]}
         />
         <p className="text-center text-gray-600 text-sm -mt-8 mb-8">
-          Kérdésed van? Írj nekünk: <a href="mailto:info@musql.app" className="hover:text-gray-900 underline">info@musql.app</a> vagy ha úgy könnyebb, hívhatsz is a <a href="tel:+36203396404" className="hover:text-gray-900 underline">+36 20 339 6404</a> számon.
+          Kérdésed van? Írj nekünk: <a href="mailto:info@musql.app" className="hover:text-gray-900 underline">info@musql.app</a> vagy hívj a <a href="tel:+36203396404" className="hover:text-gray-900 underline">+36 20 339 6404</a> számon.
         </p>
       </section>
 
-      {/* CTA Section */}
+      {/* FAQ Section */}
+      <section id="gyik" className="py-16 px-6 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <RevealSection className="text-center mb-10">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm font-medium mb-4">
+              <HelpCircle className="w-4 h-4" />
+              Gyakori kérdések
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+              Kérdésed van?
+            </h2>
+            <p className="text-gray-600">
+              Itt megtalálod a leggyakrabban feltett kérdésekre a választ
+            </p>
+          </RevealSection>
+
+          <div className="bg-gray-50 rounded-2xl p-6 md:p-8">
+            {FAQ_DATA.map((faq, i) => (
+              <FAQItem key={i} {...faq} index={i} />
+            ))}
+          </div>
+
+          <RevealSection className="text-center mt-8">
+            <p className="text-gray-600 mb-4">
+              Nem találtad meg a választ? Írj nekünk bátran!
+            </p>
+            <a 
+              href="mailto:info@musql.app"
+              className="inline-flex items-center gap-2 text-gray-900 font-medium hover:text-gray-600 transition-colors"
+            >
+              <MessageSquare className="w-4 h-4" />
+              info@musql.app
+            </a>
+          </RevealSection>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
       <section className="py-16 px-6">
         <div className="max-w-3xl mx-auto">
           <RevealSection className="text-center p-8 md:p-12 rounded-3xl bg-gray-900 text-white">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              Próbáld ki, most 15 napig ingyen!
+              Készen állsz kipróbálni?
             </h2>
-            <p className="text-gray-500 mb-6">
-              Elköteleződés nélkül, bármikor felmondható. Regisztrálj és figyeld, mennyivel egyszerűbb dolgod lesz!
+            <p className="text-gray-400 mb-6 max-w-md mx-auto">
+              Regisztrálj most és 15 napig ingyen használhatod a Musql-t. Nem kérünk bankkártya adatokat, bármikor felmondható.
             </p>
-            <Link 
-              href="/auth/signup"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#D2F159] text-gray-900 font-bold rounded-full hover:bg-[#e5ff7a] transition-all"
-            >
-              Regisztráció
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link 
+                href="/auth/signup"
+                className="group px-8 py-4 bg-[#D2F159] text-gray-900 font-bold rounded-full hover:bg-[#e5ff7a] transition-all flex items-center gap-2 text-lg"
+              >
+                Regisztrálok - 15 nap ingyen
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+            <p className="text-gray-500 text-sm mt-4">
+              Már több mint 50 edző és egyesület használja
+            </p>
           </RevealSection>
         </div>
       </section>
@@ -619,9 +678,9 @@ export default function LandingPage() {
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <a href="#funkciok" className="hover:text-gray-900">Funkciók</a>
               <a href="#arak" className="hover:text-gray-900">Árak</a>
+              <a href="#gyik" className="hover:text-gray-900">GYIK</a>
               <Link href="/aszf" className="hover:text-gray-900">ÁSZF</Link>
               <Link href="/adatvedelem" className="hover:text-gray-900">Adatvédelem</Link>
-              <Link href="/cookie-szabalyzat" className="hover:text-gray-900">Cookie</Link>
               <a href="mailto:info@musql.app" className="hover:text-gray-900">Kapcsolat</a>
             </div>
           </div>

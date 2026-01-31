@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { ArrowLeft, Camera, User } from "lucide-react"
 import { toast } from "sonner"
-import { MobileNavbar } from "./MobileNavbar"
 
 export function MobileProfil() {
   const { data: session, update } = useSession()
@@ -206,7 +205,6 @@ export function MobileProfil() {
         </button>
       </div>
 
-      <MobileNavbar />
     </div>
   )
 }

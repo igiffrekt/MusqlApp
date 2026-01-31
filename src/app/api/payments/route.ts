@@ -172,6 +172,21 @@ export async function POST(request: NextRequest) {
       status = PaymentStatus.OVERDUE
     }
 
+    // Calculate validUntil based on payment type
+    let validUntil: Date | null = null
+    if (status === PaymentStatus.PAID) {
+      const now = new Date()
+      if (paymentType === "MEMBERSHIP" || notes?.toLowerCase().includes("havi")) {
+        // Monthly pass - valid for 30 days from now
+        validUntil = new Date(now)
+        validUntil.setDate(validUntil.getDate() + 30)
+      } else if (paymentType === "TUITION" || notes?.toLowerCase().includes("napi")) {
+        // Daily pass - valid until end of today
+        validUntil = new Date(now)
+        validUntil.setHours(23, 59, 59, 999)
+      }
+    }
+
     const payment = await prisma.payment.create({
       data: {
         studentId,
@@ -183,6 +198,7 @@ export async function POST(request: NextRequest) {
         paidDate,
         paymentMethod: paymentMethod || "CASH",
         notes,
+        validUntil,
       },
       include: {
         student: {

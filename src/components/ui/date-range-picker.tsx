@@ -53,7 +53,7 @@ export function DatePickerWithRange({
             mode="range"
             defaultMonth={date?.from}
             selected={date}
-            onSelect={onDateChange}
+            onSelect={onDateChange as any}
             numberOfMonths={2}
             showTodayButton={false}
           />

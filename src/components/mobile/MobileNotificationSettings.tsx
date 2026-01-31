@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Bell, AlertCircle, UserPlus, Users, CreditCard } from "lucide-react"
 import { useNotificationsStore, type NotificationType } from "@/lib/stores/notifications-store"
 import { cn } from "@/lib/utils"
-import { MobileNavbar } from "./MobileNavbar"
 
 interface NotificationOption {
   id: NotificationType
@@ -183,7 +182,6 @@ export function MobileNotificationSettings() {
         </div>
       </div>
 
-      <MobileNavbar />
     </div>
   )
 }

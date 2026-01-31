@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Mail, Lock, CreditCard, Check, X, Phone, Send, CheckCircle, Building2 } from "lucide-react"
+import { ArrowLeft, Mail, Lock, CreditCard, Check, X, Phone, Send, CheckCircle, Building2, Copy, Hash } from "lucide-react"
 import { toast } from "sonner"
-import { MobileNavbar } from "./MobileNavbar"
 
 interface SubscriptionTier {
   id: string
@@ -94,6 +93,10 @@ export function MobileFiok() {
   const [bankName, setBankName] = useState("")
   const [isSavingBank, setIsSavingBank] = useState(false)
 
+  // Organization code state
+  const [orgCode, setOrgCode] = useState("")
+  const [codeCopied, setCodeCopied] = useState(false)
+
   const isTrainerOrAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "TRAINER"
 
   // Fetch bank account info on mount
@@ -111,9 +114,19 @@ export function MobileFiok() {
         setBankAccountName(data.settings?.bankAccountName || "")
         setBankAccountNumber(data.settings?.bankAccountNumber || "")
         setBankName(data.settings?.bankName || "")
+        setOrgCode(data.settings?.slug || "")
       }
     } catch (error) {
       console.error("Failed to fetch bank account:", error)
+    }
+  }
+
+  const copyOrgCode = async () => {
+    if (orgCode) {
+      await navigator.clipboard.writeText(orgCode)
+      setCodeCopied(true)
+      toast.success("Kód másolva!")
+      setTimeout(() => setCodeCopied(false), 2000)
     }
   }
 
@@ -313,6 +326,40 @@ export function MobileFiok() {
           </div>
         </section>
 
+        {/* Organization Code Section - Only for Trainers/Admins */}
+        {isTrainerOrAdmin && orgCode && (
+          <section className="bg-[#252a32] rounded-2xl p-5 border border-[#D2F159]/30">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-[#D2F159]/20 flex items-center justify-center">
+                <Hash className="w-5 h-5 text-[#D2F159]" />
+              </div>
+              <div>
+                <h2 className="text-white font-semibold">Szervezeti kód</h2>
+                <p className="text-white/40 text-xs">Ezzel csatlakozhatnak a tanulók</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-[#171725] rounded-xl px-4 py-3 font-mono text-[#D2F159] text-xl font-bold tracking-wider text-center">
+                {orgCode}
+              </div>
+              <button
+                onClick={copyOrgCode}
+                className="w-12 h-12 rounded-xl bg-[#D2F159] flex items-center justify-center flex-shrink-0"
+              >
+                {codeCopied ? (
+                  <Check className="w-5 h-5 text-[#171725]" />
+                ) : (
+                  <Copy className="w-5 h-5 text-[#171725]" />
+                )}
+              </button>
+            </div>
+            <p className="text-white/40 text-xs mt-3 text-center">
+              Oszd meg ezt a kódot a tanulóiddal, hogy csatlakozhassanak hozzád
+            </p>
+          </section>
+        )}
+
         {/* Password Section */}
         <section className="bg-[#252a32] rounded-2xl p-5 border border-white/5">
           <div className="flex items-center gap-3 mb-4">
@@ -502,7 +549,6 @@ export function MobileFiok() {
         />
       )}
 
-      <MobileNavbar />
     </div>
   )
 }

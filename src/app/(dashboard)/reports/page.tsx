@@ -1,612 +1,645 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DatePickerWithRange } from "@/components/ui/date-range-picker"
+import { motion } from "framer-motion"
 import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Area,
-  AreaChart
-} from "recharts"
-import {
+  BarChart3,
   TrendingUp,
   TrendingDown,
   Users,
   Calendar,
-  DollarSign,
+  Wallet,
+  Activity,
+  Clock,
   Target,
+  Loader2,
+  ChevronDown,
   Download,
-  RefreshCw,
-  BarChart3,
-  PieChart as PieChartIcon,
-  LineChart as LineChartIcon,
 } from "lucide-react"
-import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns"
-import { useSession } from "next-auth/react"
-import { AnalyticsData } from "@/lib/analytics-service"
-import { DateRange } from "react-day-picker"
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+} from "recharts"
+import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns"
+import { hu } from "date-fns/locale"
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
+interface AnalyticsData {
+  revenue: {
+    total: number
+    monthly: Array<{ month: string; amount: number }>
+    byPaymentType: Array<{ type: string; amount: number; count: number }>
+    growth: number
+  }
+  attendance: {
+    totalSessions: number
+    totalAttendance: number
+    averageAttendanceRate: number
+    weekly: Array<{ week: string; attended: number; total: number; rate: number }>
+    byStudent: Array<{ studentId: string; name: string; attended: number; total: number; rate: number }>
+    byTrainer: Array<{ trainerId: string; name: string; sessions: number; attendance: number }>
+  }
+  students: {
+    total: number
+    active: number
+    newThisMonth: number
+    retentionRate: number
+    byBeltLevel: Array<{ belt: string; count: number }>
+    enrollmentTrend: Array<{ month: string; count: number }>
+  }
+  sessions: {
+    total: number
+    completed: number
+    upcoming: number
+    byType: Array<{ type: string; count: number }>
+    byDayOfWeek: Array<{ day: string; count: number }>
+    utilizationRate: number
+  }
+}
+
+const COLORS = ["#D2F159", "#1ad598", "#f59e0b", "#ea3a3d", "#8b5cf6", "#06b6d4"]
+
+const paymentTypeLabels: Record<string, string> = {
+  MONTHLY: "Havi tagdíj",
+  DAILY: "Napi jegy",
+  SINGLE: "Egyszeri",
+  MEMBERSHIP: "Bérlet",
+  OTHER: "Egyéb",
+}
+
+const dayLabels: Record<string, string> = {
+  Monday: "Hétfő",
+  Tuesday: "Kedd",
+  Wednesday: "Szerda",
+  Thursday: "Csütörtök",
+  Friday: "Péntek",
+  Saturday: "Szombat",
+  Sunday: "Vasárnap",
+}
+
+type DateRangeOption = "thisMonth" | "lastMonth" | "last3Months" | "last6Months" | "thisYear"
+
+const dateRangeOptions: { value: DateRangeOption; label: string }[] = [
+  { value: "thisMonth", label: "Ez a hónap" },
+  { value: "lastMonth", label: "Előző hónap" },
+  { value: "last3Months", label: "Utolsó 3 hónap" },
+  { value: "last6Months", label: "Utolsó 6 hónap" },
+  { value: "thisYear", label: "Idei év" },
+]
+
+function getDateRange(option: DateRangeOption): { start: Date; end: Date } {
+  const now = new Date()
+  switch (option) {
+    case "thisMonth":
+      return { start: startOfMonth(now), end: now }
+    case "lastMonth":
+      return { start: startOfMonth(subMonths(now, 1)), end: endOfMonth(subMonths(now, 1)) }
+    case "last3Months":
+      return { start: startOfMonth(subMonths(now, 2)), end: now }
+    case "last6Months":
+      return { start: startOfMonth(subMonths(now, 5)), end: now }
+    case "thisYear":
+      return { start: new Date(now.getFullYear(), 0, 1), end: now }
+  }
+}
+
+// Stat Card Component
+const StatCard = ({
+  title,
+  value,
+  change,
+  icon: Icon,
+  color = "#D2F159",
+  suffix = "",
+  prefix = "",
+}: {
+  title: string
+  value: string | number
+  change?: number
+  icon: any
+  color?: string
+  suffix?: string
+  prefix?: string
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="rounded-2xl bg-[#252a32] border border-white/5 p-5"
+  >
+    <div className="flex items-start justify-between mb-3">
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center"
+        style={{ backgroundColor: `${color}20` }}
+      >
+        <Icon className="w-5 h-5" style={{ color }} />
+      </div>
+      {change !== undefined && (
+        <div
+          className={`flex items-center gap-1 text-sm font-medium ${
+            change >= 0 ? "text-green-400" : "text-red-400"
+          }`}
+        >
+          {change >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+          {Math.abs(change).toFixed(1)}%
+        </div>
+      )}
+    </div>
+    <div className="text-2xl font-bold text-white mb-1">
+      {prefix}
+      {typeof value === "number" ? value.toLocaleString("hu-HU") : value}
+      {suffix}
+    </div>
+    <div className="text-white/50 text-sm">{title}</div>
+  </motion.div>
+)
+
+// Chart Card Component
+const ChartCard = ({
+  title,
+  children,
+  className = "",
+}: {
+  title: string
+  children: React.ReactNode
+  className?: string
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className={`rounded-2xl bg-[#252a32] border border-white/5 p-5 ${className}`}
+  >
+    <h3 className="text-white font-semibold mb-4">{title}</h3>
+    {children}
+  </motion.div>
+)
+
+// Custom Tooltip for charts
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#1a1d24] border border-white/10 rounded-lg px-3 py-2 shadow-xl">
+        <p className="text-white/60 text-xs mb-1">{label}</p>
+        {payload.map((item: any, index: number) => (
+          <p key={index} className="text-white text-sm font-medium">
+            {typeof item.value === "number"
+              ? item.value.toLocaleString("hu-HU")
+              : item.value}
+            {item.unit || ""}
+          </p>
+        ))}
+      </div>
+    )
+  }
+  return null
+}
 
 export default function ReportsPage() {
-  const { data: session } = useSession()
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
+  const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subMonths(new Date(), 3),
-    to: new Date(),
-  })
+  const [error, setError] = useState<string | null>(null)
+  const [dateRange, setDateRange] = useState<DateRangeOption>("last3Months")
+  const [showDatePicker, setShowDatePicker] = useState(false)
 
   useEffect(() => {
-    if (session?.user && dateRange?.from && dateRange?.to) {
-      loadAnalytics()
-    }
-  }, [session, dateRange])
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true)
+        const range = getDateRange(dateRange)
+        const params = new URLSearchParams({
+          startDate: range.start.toISOString().split("T")[0],
+          endDate: range.end.toISOString().split("T")[0],
+        })
 
-  const loadAnalytics = async () => {
-    if (!dateRange?.from || !dateRange?.to) return
+        const response = await fetch(`/api/analytics?${params}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch analytics")
+        }
 
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({
-        startDate: dateRange.from.toISOString(),
-        endDate: dateRange.to.toISOString(),
-      })
-
-      const response = await fetch(`/api/analytics?${params}`)
-      if (response.ok) {
-        const data = await response.json()
-        setAnalyticsData(data)
+        const analyticsData = await response.json()
+        setData(analyticsData)
+        setError(null)
+      } catch (err) {
+        console.error("Analytics error:", err)
+        setError("Nem sikerült betölteni az adatokat")
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error("Failed to load analytics:", error)
-    } finally {
-      setLoading(false)
     }
-  }
 
-  const handleDateRangeChange = (range: DateRange | undefined) => {
-    setDateRange(range)
-  }
-
-  const setQuickDateRange = (range: string) => {
-    const now = new Date()
-    switch (range) {
-      case "7d":
-        setDateRange({ from: subDays(now, 7), to: now })
-        break
-      case "30d":
-        setDateRange({ from: subDays(now, 30), to: now })
-        break
-      case "90d":
-        setDateRange({ from: subDays(now, 90), to: now })
-        break
-      case "1y":
-        setDateRange({ from: subMonths(now, 12), to: now })
-        break
-      case "thisMonth":
-        setDateRange({ from: startOfMonth(now), to: endOfMonth(now) })
-        break
-      case "thisYear":
-        setDateRange({ from: startOfYear(now), to: endOfYear(now) })
-        break
-    }
-  }
-
-  const exportReport = () => {
-    if (!analyticsData) return
-
-    const csvContent = [
-      ["Metric", "Value"],
-      ["Total Revenue", `$${analyticsData.revenue.total.toFixed(2)}`],
-      ["Total Students", analyticsData.students.total],
-      ["Active Students", analyticsData.students.active],
-      ["Total Sessions", analyticsData.sessions.total],
-      ["Average Attendance Rate", `${analyticsData.attendance.averageAttendanceRate.toFixed(1)}%`],
-      ["Session Utilization", `${analyticsData.sessions.utilizationRate.toFixed(1)}%`],
-    ].map(row => row.join(",")).join("\n")
-
-    const blob = new Blob([csvContent], { type: "text/csv" })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `analytics-report-${format(new Date(), "yyyy-MM-dd")}.csv`
-    a.click()
-    window.URL.revokeObjectURL(url)
-  }
+    fetchAnalytics()
+  }, [dateRange])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex items-center space-x-2">
-          <RefreshCw className="w-6 h-6 animate-spin" />
-          <p className="text-gray-500">Loading analytics...</p>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 text-[#D2F159] animate-spin mx-auto mb-4" />
+          <p className="text-white/50">Adatok betöltése...</p>
         </div>
       </div>
     )
   }
 
-  if (!analyticsData) {
+  if (error || !data) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Unable to load analytics data</p>
+      <div className="rounded-3xl bg-[#252a32] border border-white/5 p-12 text-center">
+        <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
+          <BarChart3 className="w-10 h-10 text-red-400" />
+        </div>
+        <h2 className="text-xl font-semibold text-white mb-2">Hiba történt</h2>
+        <p className="text-white/50">{error || "Ismeretlen hiba"}</p>
       </div>
     )
   }
-
-  const { revenue, attendance, students, sessions } = analyticsData
 
   return (
-    <div className="space-y-6">
+    <div className="font-lufga pb-8">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics & Reports</h1>
-          <p className="text-gray-600">Comprehensive insights into your training business</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#D2F159]/20 flex items-center justify-center">
+            <BarChart3 className="w-6 h-6 text-[#D2F159]" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Riportok</h1>
+            <p className="text-white/50 text-sm">Statisztikák és elemzések</p>
+          </div>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={loadAnalytics}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
-          <Button variant="outline" onClick={exportReport}>
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
 
-      {/* Date Range Selector */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Report Period</CardTitle>
-          <CardDescription>Select the date range for your analytics</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex space-x-2">
-              {[
-                { label: "7 Days", value: "7d" },
-                { label: "30 Days", value: "30d" },
-                { label: "90 Days", value: "90d" },
-                { label: "1 Year", value: "1y" },
-                { label: "This Month", value: "thisMonth" },
-                { label: "This Year", value: "thisYear" },
-              ].map((option) => (
-                <Button
+        {/* Date Range Selector */}
+        <div className="relative">
+          <button
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#252a32] border border-white/10 text-white hover:border-white/20 transition-colors"
+          >
+            <Calendar className="w-4 h-4 text-white/50" />
+            <span>{dateRangeOptions.find((o) => o.value === dateRange)?.label}</span>
+            <ChevronDown className="w-4 h-4 text-white/50" />
+          </button>
+
+          {showDatePicker && (
+            <div className="absolute right-0 mt-2 w-48 rounded-xl bg-[#1a1d24] border border-white/10 shadow-xl z-10 overflow-hidden">
+              {dateRangeOptions.map((option) => (
+                <button
                   key={option.value}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuickDateRange(option.value)}
+                  onClick={() => {
+                    setDateRange(option.value)
+                    setShowDatePicker(false)
+                  }}
+                  className={`w-full px-4 py-2.5 text-left text-sm hover:bg-white/5 transition-colors ${
+                    dateRange === option.value
+                      ? "bg-[#D2F159]/10 text-[#D2F159]"
+                      : "text-white"
+                  }`}
                 >
                   {option.label}
-                </Button>
+                </button>
               ))}
             </div>
-            <div className="ml-auto">
-              <DatePickerWithRange
-                date={dateRange}
-                onDateChange={handleDateRangeChange}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${revenue.total.toFixed(2)}</div>
-            <div className="flex items-center text-xs text-muted-foreground">
-              {revenue.growth >= 0 ? (
-                <TrendingUp className="w-3 h-3 mr-1 text-green-500" />
-              ) : (
-                <TrendingDown className="w-3 h-3 mr-1 text-red-500" />
-              )}
-              <span className={revenue.growth >= 0 ? "text-green-500" : "text-red-500"}>
-                {Math.abs(revenue.growth).toFixed(1)}%
-              </span>
-              <span className="ml-1">from last month</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Students</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{students.active}</div>
-            <p className="text-xs text-muted-foreground">
-              of {students.total} total students
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{attendance.averageAttendanceRate.toFixed(1)}%</div>
-            <p className="text-xs text-muted-foreground">
-              {attendance.totalAttendance} of {attendance.totalSessions} sessions
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Session Utilization</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{sessions.utilizationRate.toFixed(1)}%</div>
-            <p className="text-xs text-muted-foreground">
-              {sessions.completed} completed sessions
-            </p>
-          </CardContent>
-        </Card>
+          )}
+        </div>
       </div>
 
-      {/* Charts and Detailed Analytics */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="revenue">Revenue</TabsTrigger>
-          <TabsTrigger value="attendance">Attendance</TabsTrigger>
-          <TabsTrigger value="students">Students</TabsTrigger>
-        </TabsList>
+      {/* Overview Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          title="Összes bevétel"
+          value={data.revenue.total}
+          change={data.revenue.growth}
+          icon={Wallet}
+          color="#D2F159"
+          suffix=" Ft"
+        />
+        <StatCard
+          title="Aktív tagok"
+          value={data.students.active}
+          icon={Users}
+          color="#1ad598"
+        />
+        <StatCard
+          title="Jelenlét arány"
+          value={data.attendance.averageAttendanceRate.toFixed(1)}
+          icon={Activity}
+          color="#f59e0b"
+          suffix="%"
+        />
+        <StatCard
+          title="Kihasználtság"
+          value={data.sessions.utilizationRate.toFixed(1)}
+          icon={Target}
+          color="#8b5cf6"
+          suffix="%"
+        />
+      </div>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Revenue Trend */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <LineChartIcon className="w-5 h-5 mr-2" />
-                  Revenue Trend
-                </CardTitle>
-                <CardDescription>Monthly revenue over the last 12 months</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={revenue.monthly}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [`$${value}`, "Revenue"]} />
-                    <Area type="monotone" dataKey="amount" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+      {/* Secondary Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          title="Összes óra"
+          value={data.sessions.total}
+          icon={Calendar}
+          color="#06b6d4"
+        />
+        <StatCard
+          title="Befejezett óra"
+          value={data.sessions.completed}
+          icon={Clock}
+          color="#1ad598"
+        />
+        <StatCard
+          title="Új tagok (hó)"
+          value={data.students.newThisMonth}
+          icon={Users}
+          color="#f59e0b"
+        />
+        <StatCard
+          title="Megtartás"
+          value={data.students.retentionRate.toFixed(1)}
+          icon={TrendingUp}
+          color="#D2F159"
+          suffix="%"
+        />
+      </div>
 
-            {/* Attendance by Student */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="w-5 h-5 mr-2" />
-                  Top Student Attendance
-                </CardTitle>
-                <CardDescription>Students with highest attendance rates</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={attendance.byStudent.slice(0, 5)}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [`${value}%`, "Attendance Rate"]} />
-                    <Bar dataKey="rate" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Sessions by Type */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <PieChartIcon className="w-5 h-5 mr-2" />
-                  Session Types
-                </CardTitle>
-                <CardDescription>Distribution of session types</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={sessions.byType}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="count"
-                    >
-                      {sessions.byType.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Students by Belt Level */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  Belt Level Distribution
-                </CardTitle>
-                <CardDescription>Student progression by belt ranks</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={students.byBeltLevel}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="belt" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#ffc658" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+      {/* Charts Row 1 */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        {/* Revenue Chart */}
+        <ChartCard title="Bevétel alakulása (12 hónap)">
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data.revenue.monthly}>
+                <defs>
+                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#D2F159" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#D2F159" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+                  tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Area
+                  type="monotone"
+                  dataKey="amount"
+                  stroke="#D2F159"
+                  strokeWidth={2}
+                  fill="url(#revenueGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-        </TabsContent>
+        </ChartCard>
 
-        <TabsContent value="revenue" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue by Payment Type</CardTitle>
-                <CardDescription>Breakdown of revenue sources</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={revenue.byPaymentType}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="amount"
-                    >
-                      {revenue.byPaymentType.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`$${value}`, "Amount"]} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Revenue Trend</CardTitle>
-                <CardDescription>Detailed monthly revenue chart</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={revenue.monthly}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [`$${value}`, "Revenue"]} />
-                    <Legend />
-                    <Line type="monotone" dataKey="amount" stroke="#8884d8" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+        {/* Enrollment Trend */}
+        <ChartCard title="Új tagok (12 hónap)">
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.students.enrollmentTrend}>
+                <XAxis
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="count" fill="#1ad598" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
+        </ChartCard>
+      </div>
 
-          {/* Revenue Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Details</CardTitle>
-              <CardDescription>Payment type breakdown with counts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {revenue.byPaymentType.map((item) => (
-                  <div key={item.type} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium">{item.type}</h3>
-                      <p className="text-sm text-gray-600">{item.count} payments</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold">${item.amount.toFixed(2)}</p>
-                      <p className="text-sm text-gray-600">
-                        ${(item.amount / item.count).toFixed(2)} avg
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="attendance" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Weekly Attendance Trend</CardTitle>
-                <CardDescription>Attendance rates over the last 12 weeks</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={attendance.weekly}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="week" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [`${value}%`, "Attendance Rate"]} />
-                    <Legend />
-                    <Line type="monotone" dataKey="rate" stroke="#82ca9d" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Sessions by Day</CardTitle>
-                <CardDescription>Session distribution by day of week</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={sessions.byDayOfWeek}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Attendance Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Student Attendance Rankings</CardTitle>
-              <CardDescription>Top performers by attendance rate</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {attendance.byStudent.map((student, index) => (
-                  <div key={student.studentId} className="flex items-center justify-between p-3 border rounded">
-                    <div className="flex items-center space-x-3">
-                      <Badge variant={index < 3 ? "default" : "secondary"}>
-                        #{index + 1}
-                      </Badge>
-                      <span className="font-medium">{student.name}</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold">{student.rate.toFixed(1)}%</div>
-                      <div className="text-sm text-gray-600">
-                        {student.attended}/{student.total} sessions
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="students" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Student Enrollment Trend</CardTitle>
-                <CardDescription>New student registrations over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={students.enrollmentTrend}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="count" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.3} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Student Metrics</CardTitle>
-                <CardDescription>Key student statistics</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <div>
-                    <p className="font-medium">Total Students</p>
-                    <p className="text-sm text-gray-600">All registered students</p>
-                  </div>
-                  <div className="text-2xl font-bold">{students.total}</div>
-                </div>
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <div>
-                    <p className="font-medium">Active Students</p>
-                    <p className="text-sm text-gray-600">Currently enrolled</p>
-                  </div>
-                  <div className="text-2xl font-bold">{students.active}</div>
-                </div>
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <div>
-                    <p className="font-medium">New This Month</p>
-                    <p className="text-sm text-gray-600">Recent registrations</p>
-                  </div>
-                  <div className="text-2xl font-bold">{students.newThisMonth}</div>
-                </div>
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <div>
-                    <p className="font-medium">Retention Rate</p>
-                    <p className="text-sm text-gray-600">Student retention</p>
-                  </div>
-                  <div className="text-2xl font-bold">{students.retentionRate.toFixed(1)}%</div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Belt Level Distribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Belt Level Progress</CardTitle>
-              <CardDescription>Student progression through belt ranks</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={students.byBeltLevel}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="belt" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#ffc658" />
-                </BarChart>
+      {/* Charts Row 2 */}
+      <div className="grid lg:grid-cols-3 gap-6 mb-6">
+        {/* Revenue by Type */}
+        <ChartCard title="Bevétel típus szerint">
+          <div className="h-64 flex items-center justify-center">
+            {data.revenue.byPaymentType.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data.revenue.byPaymentType}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="amount"
+                  >
+                    {data.revenue.byPaymentType.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const item = payload[0].payload
+                        return (
+                          <div className="bg-[#1a1d24] border border-white/10 rounded-lg px-3 py-2">
+                            <p className="text-white font-medium">
+                              {paymentTypeLabels[item.type] || item.type}
+                            </p>
+                            <p className="text-white/60 text-sm">
+                              {item.amount.toLocaleString("hu-HU")} Ft ({item.count} db)
+                            </p>
+                          </div>
+                        )
+                      }
+                      return null
+                    }}
+                  />
+                </PieChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ) : (
+              <p className="text-white/40">Nincs adat</p>
+            )}
+          </div>
+          {/* Legend */}
+          <div className="flex flex-wrap gap-3 mt-4">
+            {data.revenue.byPaymentType.map((item, index) => (
+              <div key={item.type} className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                />
+                <span className="text-white/60 text-xs">
+                  {paymentTypeLabels[item.type] || item.type}
+                </span>
+              </div>
+            ))}
+          </div>
+        </ChartCard>
+
+        {/* Sessions by Day */}
+        <ChartCard title="Órák napok szerint">
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.sessions.byDayOfWeek} layout="vertical">
+                <XAxis type="number" hide />
+                <YAxis
+                  type="category"
+                  dataKey="day"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 12 }}
+                  tickFormatter={(v) => dayLabels[v] || v}
+                  width={70}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="count" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </ChartCard>
+
+        {/* Weekly Attendance */}
+        <ChartCard title="Heti jelenlét trend">
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data.attendance.weekly}>
+                <XAxis
+                  dataKey="week"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+                  domain={[0, 100]}
+                  tickFormatter={(v) => `${v}%`}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const item = payload[0].payload
+                      return (
+                        <div className="bg-[#1a1d24] border border-white/10 rounded-lg px-3 py-2">
+                          <p className="text-white/60 text-xs">{item.week}</p>
+                          <p className="text-white font-medium">{item.rate.toFixed(1)}%</p>
+                          <p className="text-white/40 text-xs">
+                            {item.attended}/{item.total} résztvevő
+                          </p>
+                        </div>
+                      )
+                    }
+                    return null
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="rate"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  dot={{ fill: "#8b5cf6", strokeWidth: 0, r: 3 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </ChartCard>
+      </div>
+
+      {/* Top Students Table */}
+      <ChartCard title="Top 10 tag jelenlét szerint" className="mb-6">
+        {data.attendance.byStudent.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-white/40 text-xs uppercase">
+                  <th className="text-left pb-3 font-medium">Név</th>
+                  <th className="text-right pb-3 font-medium">Jelen</th>
+                  <th className="text-right pb-3 font-medium">Összes</th>
+                  <th className="text-right pb-3 font-medium">Arány</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.attendance.byStudent.slice(0, 10).map((student, index) => (
+                  <tr
+                    key={student.studentId}
+                    className="border-t border-white/5 text-sm"
+                  >
+                    <td className="py-3 text-white">{student.name}</td>
+                    <td className="py-3 text-right text-white/60">{student.attended}</td>
+                    <td className="py-3 text-right text-white/60">{student.total}</td>
+                    <td className="py-3 text-right">
+                      <span
+                        className={`font-medium ${
+                          student.rate >= 80
+                            ? "text-green-400"
+                            : student.rate >= 50
+                            ? "text-yellow-400"
+                            : "text-red-400"
+                        }`}
+                      >
+                        {student.rate.toFixed(1)}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-white/40 text-center py-8">Nincs elegendő adat</p>
+        )}
+      </ChartCard>
+
+      {/* Trainers Stats */}
+      {data.attendance.byTrainer.length > 0 && (
+        <ChartCard title="Edzők statisztikái">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data.attendance.byTrainer.map((trainer) => (
+              <div
+                key={trainer.trainerId}
+                className="p-4 rounded-xl bg-white/5 border border-white/5"
+              >
+                <div className="font-medium text-white mb-2">{trainer.name}</div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/50">Órák</span>
+                  <span className="text-white">{trainer.sessions}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm mt-1">
+                  <span className="text-white/50">Résztvevők</span>
+                  <span className="text-white">{trainer.attendance}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm mt-1">
+                  <span className="text-white/50">Átlag/óra</span>
+                  <span className="text-[#D2F159] font-medium">
+                    {trainer.sessions > 0
+                      ? (trainer.attendance / trainer.sessions).toFixed(1)
+                      : 0}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </ChartCard>
+      )}
     </div>
   )
 }

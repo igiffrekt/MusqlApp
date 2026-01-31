@@ -9,9 +9,9 @@ import { Calendar, Check, X, Bell, Loader2, Shield, Plus } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { MobileProfileMenu, AppInfoModal } from "./MobileProfileMenu"
+import { MemberDetailPopup } from "./MemberDetailPopup"
 import { MobileNotifications } from "./MobileNotifications"
-import { MobileNavbar } from "./MobileNavbar"
-import { useMembersStore } from "@/lib/stores/members-store"
+import { useMembersStore, type Member } from "@/lib/stores/members-store"
 import { useNotificationsStore } from "@/lib/stores/notifications-store"
 
 interface UpcomingEvent {
@@ -24,6 +24,14 @@ interface UpcomingEvent {
   groupId: string
   attendeeCount: number
   maxAttendees: number
+}
+
+interface ApiGroup {
+  id: string
+  name: string
+  memberCount: number
+  dailyFee: number
+  monthlyFee: number
 }
 
 interface QuickAction {
@@ -50,6 +58,15 @@ export function MobileHomepage() {
   const [emailingMember, setEmailingMember] = useState<typeof members[0] | null>(null)
   const [emailForm, setEmailForm] = useState({ subject: "", message: "" })
   const [sendingEmail, setSendingEmail] = useState(false)
+
+  // Group assignment state
+  const [apiGroups, setApiGroups] = useState<ApiGroup[]>([])
+  const [assigningMember, setAssigningMember] = useState<Member | null>(null)
+  const [assigningGroups, setAssigningGroups] = useState<string[]>([])
+  const [savingGroups, setSavingGroups] = useState(false)
+  
+  // Member Detail Popup
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
 
   // Check if new org needs setup (no locations yet)
   useEffect(() => {
@@ -81,6 +98,22 @@ export function MobileHomepage() {
     }
     checkSetupNeeded()
   }, [session, status, router, setupChecked])
+
+  // Fetch groups from API
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const response = await fetch("/api/groups")
+        if (response.ok) {
+          const data = await response.json()
+          setApiGroups(data.groups || [])
+        }
+      } catch (error) {
+        console.error("Failed to fetch groups:", error)
+      }
+    }
+    fetchGroups()
+  }, [])
 
   // Notifications from store
   const notifications = useNotificationsStore((state) => state.notifications)
@@ -265,13 +298,13 @@ export function MobileHomepage() {
     // Show "Add to group" button for members without groups
     if (member && member.groups.length === 0) {
       return (
-        <Link
-          href="/taglista"
-          className="flex items-center gap-1 bg-[#D2F159]/10 border border-[#D2F159]/40 rounded-full px-2 py-1"
+        <button
+          onClick={() => openGroupAssignment(member)}
+          className="flex items-center gap-1 bg-[#D2F159]/10 border border-[#D2F159]/40 rounded-full px-2 py-1 hover:bg-[#D2F159]/20 transition-colors"
         >
           <Plus className="w-4 h-4 text-[#D2F159]" />
           <span className="text-[#D2F159] text-[11px] font-normal">Csoporthoz adom</span>
-        </Link>
+        </button>
       )
     }
     
@@ -371,6 +404,62 @@ export function MobileHomepage() {
       alert("Hiba történt az email küldése közben")
     } finally {
       setSendingEmail(false)
+    }
+  }
+
+  // Group assignment handlers
+  const openGroupAssignment = (member: Member) => {
+    setAssigningMember(member)
+    setAssigningGroups([...member.groups])
+  }
+
+  const closeGroupAssignment = () => {
+    setAssigningMember(null)
+    setAssigningGroups([])
+  }
+
+  const toggleGroupSelection = (groupId: string) => {
+    setAssigningGroups(prev => 
+      prev.includes(groupId) 
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    )
+  }
+
+  const saveGroupAssignment = async () => {
+    if (!assigningMember) return
+    
+    setSavingGroups(true)
+    try {
+      // Get groups to add and remove
+      const currentGroups = assigningMember.groups
+      const groupsToAdd = assigningGroups.filter(g => !currentGroups.includes(g))
+      const groupsToRemove = currentGroups.filter(g => !assigningGroups.includes(g))
+
+      // Add to new groups
+      for (const groupId of groupsToAdd) {
+        await fetch(`/api/groups/${groupId}/students`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ studentId: assigningMember.id })
+        })
+      }
+
+      // Remove from old groups
+      for (const groupId of groupsToRemove) {
+        await fetch(`/api/groups/${groupId}/students/${assigningMember.id}`, {
+          method: "DELETE"
+        })
+      }
+
+      // Refresh members
+      await fetchMembers()
+      closeGroupAssignment()
+    } catch (error) {
+      console.error("Failed to update group assignment:", error)
+      alert("Hiba történt a csoport hozzárendelés során")
+    } finally {
+      setSavingGroups(false)
     }
   }
 
@@ -585,11 +674,14 @@ export function MobileHomepage() {
                 key={member.id}
                 className="flex items-center justify-between py-3 px-1"
               >
-                {/* Name */}
-                <div className="w-16">
+                {/* Name - Clickable */}
+                <button
+                  onClick={() => setSelectedMemberId(member.id)}
+                  className="w-16 text-left"
+                >
                   <p className="text-white font-semibold text-xs">{member.firstName}</p>
                   <p className="text-[#D2F159] text-xs">{member.lastName}</p>
-                </div>
+                </button>
 
                 {/* Status Badge */}
                 {getStatusBadge(member.status, member)}
@@ -625,7 +717,6 @@ export function MobileHomepage() {
         </section>
       </div>
 
-      <MobileNavbar />
 
       {/* Profile Menu */}
       <MobileProfileMenu
@@ -792,6 +883,93 @@ export function MobileHomepage() {
                   </>
                 ) : (
                   "Küldés"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Member Detail Popup */}
+      <MemberDetailPopup
+        memberId={selectedMemberId || ""}
+        isOpen={!!selectedMemberId}
+        onClose={() => setSelectedMemberId(null)}
+        onPaymentRecorded={() => fetchMembers()}
+      />
+
+      {/* Group Assignment Modal */}
+      {assigningMember && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6">
+          <div className="bg-[#252a32] rounded-[24px] w-full max-w-md p-6">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-white text-xl font-semibold">Csoporthoz adás</h2>
+                <p className="text-white/60 text-sm mt-1">
+                  {assigningMember.firstName} {assigningMember.lastName}
+                </p>
+              </div>
+              <button
+                onClick={closeGroupAssignment}
+                className="w-8 h-8 flex items-center justify-center text-white/60 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Group List */}
+            <div className="space-y-2 max-h-64 overflow-y-auto mb-6">
+              {apiGroups.length > 0 ? (
+                apiGroups.map((group) => (
+                  <button
+                    key={group.id}
+                    onClick={() => toggleGroupSelection(group.id)}
+                    className={cn(
+                      "w-full flex items-center justify-between p-4 rounded-xl border transition-colors",
+                      assigningGroups.includes(group.id)
+                        ? "bg-[#D2F159]/10 border-[#D2F159]/40"
+                        : "bg-[#333842] border-white/12 hover:border-white/24"
+                    )}
+                  >
+                    <span className={cn(
+                      "text-sm font-medium",
+                      assigningGroups.includes(group.id) ? "text-[#D2F159]" : "text-white"
+                    )}>
+                      {group.name}
+                    </span>
+                    {assigningGroups.includes(group.id) && (
+                      <Check className="w-5 h-5 text-[#D2F159]" />
+                    )}
+                  </button>
+                ))
+              ) : (
+                <div className="text-center py-8 text-white/40">
+                  Nincs elérhető csoport
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={closeGroupAssignment}
+                className="flex-1 py-3 rounded-full border border-white/20 text-white text-sm font-medium"
+                disabled={savingGroups}
+              >
+                Mégse
+              </button>
+              <button
+                onClick={saveGroupAssignment}
+                disabled={savingGroups || assigningGroups.length === 0}
+                className="flex-1 py-3 rounded-full bg-[#D2F159] text-[#171725] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {savingGroups ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Mentés...
+                  </>
+                ) : (
+                  "Mentés"
                 )}
               </button>
             </div>

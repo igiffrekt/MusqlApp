@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, MessageCircle, Mail, Phone, Globe, ChevronDown, X, Send } from "lucide-react"
 import { toast } from "sonner"
-import { MobileNavbar } from "./MobileNavbar"
 
 const DEVICE_OPTIONS = [
   { id: "ios", label: "iOS (iPhone/iPad)" },
@@ -130,7 +129,6 @@ export function MobileSegitseg() {
         <SupportTicketModal onClose={() => setShowTicketModal(false)} />
       )}
 
-      <MobileNavbar />
     </div>
   )
 }

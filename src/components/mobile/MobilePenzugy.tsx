@@ -19,7 +19,6 @@ import {
   Wallet,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { MobileNavbar } from "./MobileNavbar"
 import {
   AreaChart,
   Area,
@@ -287,7 +286,6 @@ export function MobilePenzugy() {
           </>
         )}
 
-        <MobileNavbar />
       </div>
       </div>
     )
@@ -500,7 +498,6 @@ export function MobilePenzugy() {
         </>
       )}
 
-      <MobileNavbar />
     </div>
     </div>
   )

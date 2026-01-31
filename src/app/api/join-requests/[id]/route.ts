@@ -181,15 +181,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       // Send welcome email
       await sendEmail({
         to: joinRequest.email,
-        subject: `Csatlakozasod jovahagyva - ${joinRequest.organization.name}`,
+        subject: `Csatlakozasod jovahagyva - ${joinRequest.organization?.name || "A szervezet"}`,
         html: `
-          <h2>Udvozlunk a ${joinRequest.organization.name} szervezetben!</h2>
+          <h2>Udvozlunk a ${joinRequest.organization?.name || "A szervezet"} szervezetben!</h2>
           <p>Kedves ${firstName},</p>
           <p>Csatlakozasi kerelmedet jovahagytuk. Most mar bejelentkezhetsz az alkalmazasba.</p>
           <p>Bejelentkezeshez latogass el ide:</p>
           <p><a href="${process.env.NEXTAUTH_URL}/auth/tag/signin">Bejelentkezes</a></p>
           <p>Add meg az email cimedet (${joinRequest.email}) es kuldunk egy bejelentkezo linket.</p>
-          <p>Udv,<br>${joinRequest.organization.name}</p>
+          <p>Udv,<br>${joinRequest.organization?.name || "A szervezet"}</p>
         `,
       })
 
@@ -211,11 +211,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       // Send rejection email
       await sendEmail({
         to: joinRequest.email,
-        subject: `Csatlakozasi kerelem - ${joinRequest.organization.name}`,
+        subject: `Csatlakozasi kerelem - ${joinRequest.organization?.name || "A szervezet"}`,
         html: `
           <h2>Csatlakozasi kerelem</h2>
           <p>Kedves ${joinRequest.name},</p>
-          <p>Sajnos a ${joinRequest.organization.name} szervezethez benyujtott csatlakozasi kerelmedet elutasitottuk.</p>
+          <p>Sajnos a ${joinRequest.organization?.name || "A szervezet"} szervezethez benyujtott csatlakozasi kerelmedet elutasitottuk.</p>
           <p>Ha kerdesed van, kerlek vedd fel a kapcsolatot a szervezettel.</p>
         `,
       })

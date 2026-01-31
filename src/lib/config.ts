@@ -13,6 +13,11 @@ export const LICENSE_PRICES = {
     EUR: 2300,      // €23/month  
     HUF: 990000,    // 9,900 Ft/month (stored as fillér)
   },
+  PRO: {
+    USD: 4900,      // $49/month
+    EUR: 4500,      // €45/month
+    HUF: 1999000,   // 19,990 Ft/month
+  },
   PROFESSIONAL: {
     USD: 7500,      // $75/month
     EUR: 6900,      // €69/month
@@ -31,6 +36,11 @@ export const LICENSE_DISPLAY_PRICES = {
     USD: '$25',
     EUR: '€23',
     HUF: '9 900 Ft',
+  },
+  PRO: {
+    USD: '$49',
+    EUR: '€45',
+    HUF: '19 990 Ft',
   },
   PROFESSIONAL: {
     USD: '$75',
@@ -62,6 +72,12 @@ export const LICENSE_LIMITS = {
     maxTrainers: 2,
     maxLocations: 1,
   },
+  PRO: {
+    maxStudents: 30,
+    maxSessions: 100,
+    maxTrainers: 5,
+    maxLocations: 2,
+  },
   PROFESSIONAL: {
     maxStudents: 75,
     maxSessions: 200,
@@ -79,6 +95,7 @@ export const LICENSE_LIMITS = {
 // License tier display names (Hungarian)
 export const LICENSE_TIER_NAMES = {
   STARTER: 'Alap',
+  PRO: 'Pro',
   PROFESSIONAL: 'Prémium', 
   ENTERPRISE: 'Üzleti',
 } as const
@@ -90,6 +107,13 @@ export const LICENSE_FEATURES = {
     'Max 50 óra/hó',
     'Max 2 edző',
     'Email támogatás',
+  ],
+  PRO: [
+    'Max 30 tag',
+    'Max 100 óra/hó',
+    'Max 5 edző',
+    'Email értesítések',
+    'Alap riportok',
   ],
   PROFESSIONAL: [
     'Max 75 tag',
