@@ -7,7 +7,7 @@ import Link from "next/link"
 import { 
   Bell, Calendar, CreditCard, Clock, MapPin, User, LogOut, ChevronRight, 
   Loader2, Settings, Info, History, Phone, Mail, ShoppingBag, X, Check,
-  AlertCircle, Send
+  AlertCircle, Send, QrCode
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useUserProfile } from "@/contexts/UserProfileContext"
@@ -295,17 +295,25 @@ export function MobileStudentHomepage() {
                 <h1 className="text-white font-semibold text-lg">{userName}!</h1>
               </div>
             </button>
-            <button
-              onClick={() => setShowNotifications(true)}
-              className="relative w-12 h-12 rounded-full bg-[#252a32] flex items-center justify-center"
-            >
-              <Bell className="w-6 h-6 text-white" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-[#ef4444] rounded-full text-xs text-white flex items-center justify-center px-1">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/belepes"
+                className="w-12 h-12 rounded-full bg-[#D2F159] flex items-center justify-center shadow-lg shadow-[#D2F159]/20"
+              >
+                <QrCode className="w-6 h-6 text-[#171725]" />
+              </Link>
+              <button
+                onClick={() => setShowNotifications(true)}
+                className="relative w-12 h-12 rounded-full bg-[#252a32] flex items-center justify-center"
+              >
+                <Bell className="w-6 h-6 text-white" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-[#ef4444] rounded-full text-xs text-white flex items-center justify-center px-1">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
           <p className="text-white/40 text-sm mt-1 ml-15">{organizationName}</p>
         </div>
