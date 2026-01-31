@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   ArrowLeft,
   Search,
@@ -12,12 +12,13 @@ import {
   XCircle,
   Clock,
   User,
-  Monitor,
   Calendar,
-  Download,
   RefreshCw,
   Loader2,
   ChevronDown,
+  Plus,
+  X,
+  UserPlus,
 } from "lucide-react"
 import { format } from "date-fns"
 import { hu } from "date-fns/locale"
@@ -37,6 +38,14 @@ interface CheckIn {
     id: string
     name: string
   } | null
+}
+
+interface Student {
+  id: string
+  firstName: string
+  lastName: string
+  status: string
+  photo?: string | null
 }
 
 interface Stats {
@@ -73,6 +82,14 @@ export default function BelepesekPage() {
   const [statusFilter, setStatusFilter] = useState<string>("")
   const [showFilters, setShowFilters] = useState(false)
   const [dateFilter, setDateFilter] = useState("today")
+
+  // Manual check-in state
+  const [showManualModal, setShowManualModal] = useState(false)
+  const [students, setStudents] = useState<Student[]>([])
+  const [loadingStudents, setLoadingStudents] = useState(false)
+  const [studentSearch, setStudentSearch] = useState("")
+  const [checkingIn, setCheckingIn] = useState<string | null>(null)
+  const [manualSuccess, setManualSuccess] = useState<Student | null>(null)
 
   // Get date range based on filter
   const getDateRange = () => {
@@ -143,6 +160,61 @@ export default function BelepesekPage() {
     }
   }
 
+  // Fetch students for manual check-in
+  const fetchStudents = async () => {
+    setLoadingStudents(true)
+    try {
+      const response = await fetch("/api/students?active=true")
+      if (response.ok) {
+        const data = await response.json()
+        setStudents(data.students || [])
+      }
+    } catch (error) {
+      console.error("Failed to fetch students:", error)
+    } finally {
+      setLoadingStudents(false)
+    }
+  }
+
+  // Manual check-in
+  const handleManualCheckIn = async (student: Student) => {
+    setCheckingIn(student.id)
+    try {
+      const response = await fetch("/api/checkin/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId: student.id })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        setManualSuccess(student)
+        // Refresh check-ins after 2 seconds
+        setTimeout(() => {
+          setManualSuccess(null)
+          setShowManualModal(false)
+          fetchCheckIns()
+        }, 2000)
+      } else {
+        alert(data.error || "Hiba történt a beléptetés során")
+      }
+    } catch (error) {
+      console.error("Manual check-in error:", error)
+      alert("Hiba történt a beléptetés során")
+    } finally {
+      setCheckingIn(null)
+    }
+  }
+
+  // Open modal and fetch students
+  const openManualModal = () => {
+    setShowManualModal(true)
+    setStudentSearch("")
+    setManualSuccess(null)
+    fetchStudents()
+  }
+
   useEffect(() => {
     fetchCheckIns()
   }, [dateFilter, statusFilter])
@@ -155,6 +227,14 @@ export default function BelepesekPage() {
       ci.student?.name.toLowerCase().includes(query) ||
       ci.terminal?.name.toLowerCase().includes(query)
     )
+  })
+
+  // Filter students by search
+  const filteredStudents = students.filter((s) => {
+    if (!studentSearch) return true
+    const query = studentSearch.toLowerCase()
+    const fullName = `${s.firstName} ${s.lastName}`.toLowerCase()
+    return fullName.includes(query)
   })
 
   // Group by date
@@ -423,6 +503,131 @@ export default function BelepesekPage() {
           </button>
         )}
       </div>
+
+      {/* FAB - Manual Check-in */}
+      <button
+        onClick={openManualModal}
+        className="fixed bottom-24 right-6 w-14 h-14 bg-[#D2F159] rounded-full flex items-center justify-center shadow-lg shadow-[#D2F159]/30 z-50"
+      >
+        <UserPlus className="w-6 h-6 text-[#171725]" />
+      </button>
+
+      {/* Manual Check-in Modal */}
+      <AnimatePresence>
+        {showManualModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center"
+            onClick={() => setShowManualModal(false)}
+          >
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#1e1e2e] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[80vh] flex flex-col"
+            >
+              {/* Modal Header */}
+              <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                <h2 className="text-white text-xl font-semibold">Manuális beléptetés</h2>
+                <button
+                  onClick={() => setShowManualModal(false)}
+                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center"
+                >
+                  <X className="w-5 h-5 text-white/60" />
+                </button>
+              </div>
+
+              {/* Success State */}
+              {manualSuccess ? (
+                <div className="p-8 text-center">
+                  <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-10 h-10 text-green-500" />
+                  </div>
+                  <h3 className="text-white text-xl font-semibold mb-2">
+                    {manualSuccess.firstName} belépett!
+                  </h3>
+                  <p className="text-white/50">Sikeres manuális beléptetés</p>
+                </div>
+              ) : (
+                <>
+                  {/* Search */}
+                  <div className="p-4 border-b border-white/5">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                      <input
+                        type="text"
+                        value={studentSearch}
+                        onChange={(e) => setStudentSearch(e.target.value)}
+                        placeholder="Keresés név alapján..."
+                        className="w-full bg-[#252a32] rounded-xl border border-white/5 pl-10 pr-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#D2F159]"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  {/* Student List */}
+                  <div className="flex-1 overflow-y-auto p-4">
+                    {loadingStudents ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-8 h-8 text-[#D2F159] animate-spin" />
+                      </div>
+                    ) : filteredStudents.length === 0 ? (
+                      <div className="text-center py-8">
+                        <User className="w-12 h-12 text-white/20 mx-auto mb-2" />
+                        <p className="text-white/40">
+                          {studentSearch ? "Nincs találat" : "Nincsenek aktív tagok"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {filteredStudents.map((student) => (
+                          <button
+                            key={student.id}
+                            onClick={() => handleManualCheckIn(student)}
+                            disabled={checkingIn === student.id}
+                            className="w-full bg-[#252a32] rounded-xl p-4 flex items-center gap-3 hover:bg-[#2a2f3a] transition-colors disabled:opacity-50"
+                          >
+                            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
+                              {student.photo ? (
+                                <img
+                                  src={student.photo}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <User className="w-6 h-6 text-white/40" />
+                              )}
+                            </div>
+                            <div className="flex-1 text-left">
+                              <p className="text-white font-medium">
+                                {student.firstName} {student.lastName}
+                              </p>
+                              <p className="text-white/40 text-sm">
+                                {student.status === "ACTIVE" ? "Aktív tag" : student.status}
+                              </p>
+                            </div>
+                            {checkingIn === student.id ? (
+                              <Loader2 className="w-6 h-6 text-[#D2F159] animate-spin" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-[#D2F159]/20 flex items-center justify-center">
+                                <Plus className="w-5 h-5 text-[#D2F159]" />
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
