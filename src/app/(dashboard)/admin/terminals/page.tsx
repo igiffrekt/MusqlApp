@@ -12,13 +12,11 @@ import {
   Trash2,
   MapPin,
   Clock,
-  Activity,
-  CheckCircle2,
-  XCircle,
-  RefreshCw,
   Copy,
   Loader2,
   X,
+  Save,
+  ExternalLink,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -31,14 +29,31 @@ interface Terminal {
   location: { id: string; name: string } | null
   totalCheckIns: number
   todayCheckIns: number
-  settings: any
+  settings: TerminalSettings | null
   createdAt: string
+}
+
+interface TerminalSettings {
+  openingHours?: Record<string, { open: string; close: string; enabled: boolean }>
+  soundEnabled?: boolean
 }
 
 interface Location {
   id: string
   name: string
 }
+
+const DAYS = [
+  { key: "monday", label: "Hétfő" },
+  { key: "tuesday", label: "Kedd" },
+  { key: "wednesday", label: "Szerda" },
+  { key: "thursday", label: "Csütörtök" },
+  { key: "friday", label: "Péntek" },
+  { key: "saturday", label: "Szombat" },
+  { key: "sunday", label: "Vasárnap" },
+]
+
+const DEFAULT_HOURS = { open: "06:00", close: "22:00", enabled: true }
 
 export default function TerminalsPage() {
   const { data: session } = useSession()
@@ -50,6 +65,13 @@ export default function TerminalsPage() {
   const [showSettingsModal, setShowSettingsModal] = useState<Terminal | null>(null)
   const [newTerminal, setNewTerminal] = useState({ name: "", locationId: "" })
   const [creating, setCreating] = useState(false)
+  
+  // Settings state
+  const [editingSettings, setEditingSettings] = useState<TerminalSettings | null>(null)
+  const [editingName, setEditingName] = useState("")
+  const [editingActive, setEditingActive] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // Fetch terminals
   const fetchTerminals = async () => {
@@ -85,6 +107,103 @@ export default function TerminalsPage() {
     fetchLocations()
   }, [])
 
+  // Open settings modal
+  const openSettingsModal = (terminal: Terminal) => {
+    setShowSettingsModal(terminal)
+    setEditingName(terminal.name)
+    setEditingActive(terminal.isActive)
+    
+    // Initialize opening hours
+    const existingHours = terminal.settings?.openingHours || {}
+    const hours: Record<string, { open: string; close: string; enabled: boolean }> = {}
+    DAYS.forEach(day => {
+      hours[day.key] = existingHours[day.key] || { ...DEFAULT_HOURS }
+    })
+    
+    setEditingSettings({
+      openingHours: hours,
+      soundEnabled: terminal.settings?.soundEnabled !== false
+    })
+  }
+
+  // Save settings
+  const handleSaveSettings = async () => {
+    if (!showSettingsModal) return
+    
+    setSaving(true)
+    try {
+      const response = await fetch(`/api/checkin/terminals/${showSettingsModal.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editingName,
+          isActive: editingActive,
+          settings: editingSettings
+        })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setTerminals(terminals.map(t => 
+          t.id === showSettingsModal.id 
+            ? { ...t, ...data.terminal, totalCheckIns: t.totalCheckIns, todayCheckIns: t.todayCheckIns }
+            : t
+        ))
+        toast.success("Beállítások mentve!")
+        setShowSettingsModal(null)
+      } else {
+        const error = await response.json()
+        toast.error(error.error || "Hiba történt")
+      }
+    } catch (error) {
+      toast.error("Nem sikerült menteni")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Delete terminal
+  const handleDeleteTerminal = async () => {
+    if (!showSettingsModal) return
+    if (!confirm("Biztosan törölni szeretnéd ezt a terminált?")) return
+    
+    setDeleting(true)
+    try {
+      const response = await fetch(`/api/checkin/terminals/${showSettingsModal.id}`, {
+        method: "DELETE"
+      })
+      
+      if (response.ok) {
+        setTerminals(terminals.filter(t => t.id !== showSettingsModal.id))
+        toast.success("Terminál törölve")
+        setShowSettingsModal(null)
+      } else {
+        const error = await response.json()
+        toast.error(error.error || "Hiba történt")
+      }
+    } catch (error) {
+      toast.error("Nem sikerült törölni")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  // Update opening hours for a day
+  const updateDayHours = (day: string, field: string, value: string | boolean) => {
+    if (!editingSettings?.openingHours) return
+    
+    setEditingSettings({
+      ...editingSettings,
+      openingHours: {
+        ...editingSettings.openingHours,
+        [day]: {
+          ...editingSettings.openingHours[day],
+          [field]: value
+        }
+      }
+    })
+  }
+
   // Create terminal
   const handleCreateTerminal = async () => {
     if (!newTerminal.name.trim()) {
@@ -105,7 +224,7 @@ export default function TerminalsPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setTerminals([data.terminal, ...terminals])
+        setTerminals([{ ...data.terminal, totalCheckIns: 0, todayCheckIns: 0 }, ...terminals])
         setShowAddModal(false)
         setNewTerminal({ name: "", locationId: "" })
         toast.success("Terminál létrehozva!")
@@ -124,6 +243,13 @@ export default function TerminalsPage() {
   const copyDeviceId = (deviceId: string) => {
     navigator.clipboard.writeText(deviceId)
     toast.success("Eszközazonosító másolva!")
+  }
+
+  // Copy kiosk URL
+  const copyKioskUrl = (deviceId: string) => {
+    const url = `${window.location.origin}/terminal/${deviceId}`
+    navigator.clipboard.writeText(url)
+    toast.success("Kiosk URL másolva!")
   }
 
   // Format relative time
@@ -235,7 +361,7 @@ export default function TerminalsPage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setShowSettingsModal(terminal)}
+                  onClick={() => openSettingsModal(terminal)}
                   className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"
                 >
                   <Settings className="w-4 h-4 text-white/60" />
@@ -342,12 +468,12 @@ export default function TerminalsPage() {
 
       {/* Settings Modal */}
       <AnimatePresence>
-        {showSettingsModal && (
+        {showSettingsModal && editingSettings && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 flex items-end"
+            className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center"
             onClick={() => setShowSettingsModal(null)}
           >
             <motion.div
@@ -355,11 +481,12 @@ export default function TerminalsPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25 }}
-              className="w-full bg-[#1E1E2D] rounded-t-3xl p-6 max-h-[80vh] overflow-auto"
+              className="w-full sm:max-w-lg bg-[#1E1E2D] rounded-t-3xl sm:rounded-2xl max-h-[85vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-white text-xl font-semibold">{showSettingsModal.name}</h2>
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-white/5">
+                <h2 className="text-white text-xl font-semibold">Beállítások</h2>
                 <button
                   onClick={() => setShowSettingsModal(null)}
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"
@@ -368,40 +495,140 @@ export default function TerminalsPage() {
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {/* Device ID */}
-                <div className="bg-[#252a32] rounded-xl p-4">
-                  <p className="text-white/40 text-sm mb-1">Eszközazonosító</p>
-                  <p className="text-white font-mono">{showSettingsModal.deviceId}</p>
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Name */}
+                <div>
+                  <label className="text-white/60 text-sm mb-2 block">Név</label>
+                  <input
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    className="w-full bg-[#252a32] rounded-xl border border-white/5 px-4 py-3 text-white focus:outline-none focus:border-[#D2F159]"
+                  />
+                </div>
+
+                {/* Active toggle */}
+                <div className="flex items-center justify-between bg-[#252a32] rounded-xl p-4">
+                  <span className="text-white">Aktív</span>
+                  <button
+                    onClick={() => setEditingActive(!editingActive)}
+                    className={`w-12 h-7 rounded-full p-1 transition-colors ${
+                      editingActive ? "bg-[#D2F159]" : "bg-white/20"
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                      editingActive ? "translate-x-5" : ""
+                    }`} />
+                  </button>
                 </div>
 
                 {/* Kiosk URL */}
-                <div className="bg-[#252a32] rounded-xl p-4">
-                  <p className="text-white/40 text-sm mb-1">Kiosk URL</p>
-                  <p className="text-white font-mono text-sm break-all">
-                    {typeof window !== "undefined" 
-                      ? `${window.location.origin}/kiosk/${showSettingsModal.deviceId}`
-                      : `/kiosk/${showSettingsModal.deviceId}`
-                    }
-                  </p>
-                </div>
-
-                {/* Status toggle */}
-                <div className="flex items-center justify-between bg-[#252a32] rounded-xl p-4">
-                  <span className="text-white">Aktív</span>
-                  <div className={`w-12 h-7 rounded-full p-1 transition-colors ${
-                    showSettingsModal.isActive ? "bg-[#D2F159]" : "bg-white/20"
-                  }`}>
-                    <div className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                      showSettingsModal.isActive ? "translate-x-5" : ""
-                    }`} />
+                <div>
+                  <label className="text-white/60 text-sm mb-2 block">Kiosk URL</label>
+                  <div className="flex gap-2">
+                    <div className="flex-1 bg-[#252a32] rounded-xl px-4 py-3 text-white/60 text-sm font-mono truncate">
+                      /terminal/{showSettingsModal.deviceId}
+                    </div>
+                    <button
+                      onClick={() => copyKioskUrl(showSettingsModal.deviceId)}
+                      className="px-4 bg-[#252a32] rounded-xl"
+                    >
+                      <Copy className="w-4 h-4 text-white/60" />
+                    </button>
+                    <a
+                      href={`/terminal/${showSettingsModal.deviceId}`}
+                      target="_blank"
+                      className="px-4 bg-[#252a32] rounded-xl flex items-center"
+                    >
+                      <ExternalLink className="w-4 h-4 text-white/60" />
+                    </a>
                   </div>
                 </div>
 
-                {/* Delete button */}
-                <button className="w-full py-4 bg-red-500/20 text-red-400 rounded-xl font-medium flex items-center justify-center gap-2">
-                  <Trash2 className="w-5 h-5" />
-                  Terminál törlése
+                {/* Opening Hours */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Clock className="w-5 h-5 text-[#D2F159]" />
+                    <h3 className="text-white font-medium">Nyitvatartás</h3>
+                  </div>
+                  <p className="text-white/40 text-sm mb-4">
+                    Ha be van állítva, a terminál csak nyitvatartási időben fogad belépést.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {DAYS.map((day) => {
+                      const hours = editingSettings.openingHours?.[day.key] || DEFAULT_HOURS
+                      return (
+                        <div key={day.key} className="bg-[#252a32] rounded-xl p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-white font-medium">{day.label}</span>
+                            <button
+                              onClick={() => updateDayHours(day.key, "enabled", !hours.enabled)}
+                              className={`w-10 h-6 rounded-full p-1 transition-colors ${
+                                hours.enabled ? "bg-[#D2F159]" : "bg-white/20"
+                              }`}
+                            >
+                              <div className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                                hours.enabled ? "translate-x-4" : ""
+                              }`} />
+                            </button>
+                          </div>
+                          
+                          {hours.enabled && (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="time"
+                                value={hours.open}
+                                onChange={(e) => updateDayHours(day.key, "open", e.target.value)}
+                                className="flex-1 bg-white/5 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:ring-1 focus:ring-[#D2F159]"
+                              />
+                              <span className="text-white/40">-</span>
+                              <input
+                                type="time"
+                                value={hours.close}
+                                onChange={(e) => updateDayHours(day.key, "close", e.target.value)}
+                                className="flex-1 bg-white/5 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:ring-1 focus:ring-[#D2F159]"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-white/5 space-y-3">
+                <button
+                  onClick={handleSaveSettings}
+                  disabled={saving}
+                  className="w-full py-4 bg-[#D2F159] text-[#171725] rounded-full font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      Mentés
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  onClick={handleDeleteTerminal}
+                  disabled={deleting}
+                  className="w-full py-4 bg-red-500/20 text-red-400 rounded-xl font-medium flex items-center justify-center gap-2"
+                >
+                  {deleting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Trash2 className="w-5 h-5" />
+                      Terminál törlése
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>
