@@ -37,6 +37,8 @@ model Organization {
   sessions                Session[]
   students                Student[]
   users                   User[]
+  terminals               Terminal[]
+  checkIns                CheckIn[]
 
   @@map("organizations")
 }
@@ -54,6 +56,7 @@ model Location {
   updatedAt      DateTime      @updatedAt
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   sessions       Session[]
+  terminals      Terminal[]
 
   @@map("locations")
 }
@@ -169,6 +172,7 @@ model Student {
   paymentPlans            PaymentPlan[]
   payments                Payment[]
   groups                  StudentGroup[]
+  checkIns                CheckIn[]
   organization            Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user                    User?          @relation(fields: [userId], references: [id])
 
@@ -424,4 +428,60 @@ enum NotificationType {
   SUCCESS
   WARNING
   ERROR
+}
+
+// ============================================
+// Beléptetőrendszer (Check-in System)
+// ============================================
+
+model Terminal {
+  id             String    @id @default(cuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  locationId     String?
+  location       Location? @relation(fields: [locationId], references: [id])
+  deviceId       String    @unique  // Egyedi hardver azonosító
+  isActive       Boolean   @default(true)
+  lastSeen       DateTime?
+  settings       Json?     // Nyitvatartás, hangok, stb.
+  checkIns       CheckIn[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([organizationId])
+  @@map("terminals")
+}
+
+model CheckIn {
+  id             String        @id @default(cuid())
+  studentId      String
+  student        Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  terminalId     String?
+  terminal       Terminal?     @relation(fields: [terminalId], references: [id])
+  method         CheckInMethod @default(QR_CODE)
+  status         CheckInStatus @default(SUCCESS)
+  note           String?
+  createdAt      DateTime      @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([studentId, createdAt])
+  @@map("check_ins")
+}
+
+enum CheckInMethod {
+  QR_CODE
+  MANUAL
+  PIN_CODE
+  NFC
+}
+
+enum CheckInStatus {
+  SUCCESS
+  DENIED_EXPIRED
+  DENIED_INACTIVE
+  DENIED_NO_ACCESS
+  DENIED_OUTSIDE_HOURS
 }
